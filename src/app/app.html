@@ -1,11 +1,17 @@
-<nav mat-tab-nav-bar [tabPanel]="tabPanel">
-  @for (tab of tabs; track tab.route) {
-    <a mat-tab-link
-      (click)="navTo(tab)"
-      [active]="selectedTab() == tab"> {{tab.title}} </a>
-  }
-  <a mat-tab-link disabled>Disabled Link</a>
-</nav>
-<mat-tab-nav-panel #tabPanel></mat-tab-nav-panel>
-
-<router-outlet />
+@if (!userToken()) {
+  <app-login-page></app-login-page>
+} @else {
+  <div class="parent-layout">
+    <nav mat-tab-nav-bar [tabPanel]="tabPanel">
+      @for (tab of tabs; track tab.route) {
+        <a mat-tab-link
+          (click)="navTo(tab)"
+          [active]="selectedTab() == tab"> {{tab.title}} </a>
+      }
+      <a mat-tab-link disabled>Disabled Link</a>
+    </nav>
+    <mat-tab-nav-panel #tabPanel></mat-tab-nav-panel>
+    
+    <router-outlet />
+  </div>
+}
