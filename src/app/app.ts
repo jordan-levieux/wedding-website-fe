@@ -1,13 +1,14 @@
 import {
   Component,
   inject,
-  OnInit,
+  Signal,
   signal,
-  WritableSignal,
+  WritableSignal
 } from "@angular/core";
 import { MatTabsModule } from "@angular/material/tabs";
 import { Router, RouterOutlet } from "@angular/router";
 import { LoginPage } from "./login-page/login-page";
+import { AuthService } from "./services/authService";
 
 type Tab = {
   title: string;
@@ -20,10 +21,12 @@ type Tab = {
   templateUrl: "./app.html",
   imports: [RouterOutlet, MatTabsModule, LoginPage],
 })
-export class App implements OnInit {
+export class App {
+  authService = inject(AuthService);
+  
   protected router = inject(Router);
 
-  protected userToken: WritableSignal<string | null> = signal(null);
+  protected userToken: Signal<string | null> = this.authService.accessToken;
   protected readonly title = signal("wedding-website");
   protected readonly tabs: Tab[] = [
     {
@@ -37,27 +40,6 @@ export class App implements OnInit {
   ];
   protected selectedTab: WritableSignal<Tab> = signal(this.tabs[0]);
 
-  ngOnInit(): void {
-    this.loadScript("https://accounts.google.com/gsi/client")
-      .then(() => {
-        this.initAuth();
-      })
-      .catch((error: any) => console.error("Error: ", error));
-  }
-
-  loadScript(src: string) {
-    return new Promise((resolve, reject) => {
-      const script = document.createElement("script");
-      script.src = src;
-      script.async = true; // Runs script asynchronously
-
-      script.addEventListener("load", () => resolve(script));
-      script.addEventListener("error", (err) => reject(err));
-
-      document.head.appendChild(script);
-    });
-  }
-
   navTo = (tab: Tab) => {
     this.selectedTab.set(tab);
     this.router.navigate([tab.route]);
@@ -66,21 +48,5 @@ export class App implements OnInit {
 
   activeLink = () => {
     return "test";
-  };
-
-  handleCredentialResponse = (res: { clientId: string; credential: string }) => {
-    this.userToken.set(res.credential);
-  }
-
-  initAuth = () => {
-    //@ts-ignore
-    google.accounts.id.initialize({
-      client_id:
-        "REPLACE",
-      callback: this.handleCredentialResponse,
-      cancel_on_tap_outside: false,
-    });
-    //@ts-ignore
-    google.accounts.id.prompt();
   };
 }
