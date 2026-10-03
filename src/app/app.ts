@@ -3,11 +3,10 @@ import {
   inject,
   Signal,
   signal,
-  WritableSignal
+  WritableSignal,
 } from "@angular/core";
 import { MatTabsModule } from "@angular/material/tabs";
 import { Router, RouterOutlet } from "@angular/router";
-import { LoginPage } from "./login-page/login-page";
 import { AuthService } from "./services/authService";
 
 type Tab = {
@@ -19,11 +18,11 @@ type Tab = {
   selector: "app-root",
   styleUrl: "./app.scss",
   templateUrl: "./app.html",
-  imports: [RouterOutlet, MatTabsModule, LoginPage],
+  imports: [RouterOutlet, MatTabsModule],
 })
 export class App {
   authService = inject(AuthService);
-  
+
   protected router = inject(Router);
 
   protected userToken: Signal<string | null> = this.authService.accessToken;

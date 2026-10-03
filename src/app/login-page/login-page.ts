@@ -1,5 +1,6 @@
-import { Component, inject, OnInit } from "@angular/core";
+import { Component, effect, inject, OnInit } from "@angular/core";
 import { AuthService } from "../services/authService";
+import { ActivatedRoute, Router } from "@angular/router";
 
 @Component({
   imports: [],
@@ -8,9 +9,23 @@ import { AuthService } from "../services/authService";
   templateUrl: "./login-page.html",
 })
 export class LoginPage implements OnInit {
-  authService = inject(AuthService);
+  private activatedRoute = inject(ActivatedRoute);
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
+  constructor() {
+    effect(() => {
+      if (this.authService.accessToken()) {
+        this.router.navigate(["/"]);
+      }
+    });
+  }
 
   ngOnInit(): void {
-    this.authService.triggerLogin();
+    const signUpToken: string | undefined =
+      this.activatedRoute.snapshot.queryParams["sign-up-token"];
+    if (!this.authService.accessToken()) {
+      this.authService.triggerLogin(signUpToken);
+    }
   }
 }

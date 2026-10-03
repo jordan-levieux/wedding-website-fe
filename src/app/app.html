@@ -1,5 +1,5 @@
 @if (!userToken()) {
-  <app-login-page></app-login-page>
+  <router-outlet />
 } @else {
   <div class="parent-layout">
     <nav mat-tab-nav-bar [tabPanel]="tabPanel">
