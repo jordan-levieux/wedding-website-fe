@@ -1,0 +1,90 @@
+<form (submit)="onSubmit($event)" novalidate>
+  <fieldset>
+    <legend>
+      {{ isSelf() ? "Will you be joining us?" : "Will " + guest().name + " be joining us?" }}
+    </legend>
+    <mat-radio-group [formField]="rsvpForm.attending" class="options">
+      <mat-radio-button value="yes">Yes, wouldn't miss it</mat-radio-button>
+      <mat-radio-button value="no">Sadly not</mat-radio-button>
+    </mat-radio-group>
+    @if (errorOf(rsvpForm.attending); as error) {
+      <p class="error" role="alert">{{ error }}</p>
+    }
+  </fieldset>
+
+  @if (attending()) {
+    <mat-form-field>
+      <mat-label>Dietary requirements</mat-label>
+      <mat-select [formField]="rsvpForm.dietary">
+        @for (option of dietaryOptions; track option.value) {
+          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    @if (errorOf(rsvpForm.dietary); as error) {
+      <p class="error" role="alert">{{ error }}</p>
+    }
+    @if (model().dietary === "other") {
+      <mat-form-field>
+        <mat-label>What should we know?</mat-label>
+        <textarea matInput [formField]="rsvpForm.dietaryOtherDetails" rows="2"></textarea>
+        <mat-hint align="end"
+          >{{ model().dietaryOtherDetails.length }} / {{ maxDetailsLength }}</mat-hint
+        >
+      </mat-form-field>
+      @if (errorOf(rsvpForm.dietaryOtherDetails); as error) {
+        <p class="error" role="alert">{{ error }}</p>
+      }
+    }
+
+    <fieldset>
+      <legend>Would {{ you() }} like a seat on the shuttle?</legend>
+      <mat-radio-group [formField]="rsvpForm.shuttle" class="options">
+        <mat-radio-button value="yes">Yes please</mat-radio-button>
+        <mat-radio-button value="no">No thanks</mat-radio-button>
+        <mat-radio-button value="unsure">Not sure yet</mat-radio-button>
+      </mat-radio-group>
+      @if (prefilled().includes("shuttle")) {
+        <p class="hint">Copied from your RSVP. Change it if it's different.</p>
+      }
+    </fieldset>
+
+    <fieldset>
+      <legend>
+        Where {{ isSelf() ? "are you" : "is " + guest().name }} staying?
+        <span class="optional">(optional)</span>
+      </legend>
+      <p class="hint">
+        It helps us plan the shuttle and know where to find everyone in an emergency. On Google
+        Maps, press and hold on the place, then copy the coordinates or share link here.
+      </p>
+      @if (venueAccommodation()) {
+        <p class="venue">
+          We'd love you to stay at the venue! Please book directly with them, they'll take care of
+          everything.
+        </p>
+      }
+      <mat-form-field>
+        <mat-label>Coordinates or Google Maps link</mat-label>
+        <input matInput [formField]="rsvpForm.accommodation" placeholder="-33.92, 18.42" />
+      </mat-form-field>
+      @if (errorOf(rsvpForm.accommodation); as error) {
+        <p class="error" role="alert">{{ error }}</p>
+      } @else if (location(); as location) {
+        <a class="map-link" [href]="mapsLink(location)" target="_blank" rel="noopener"
+          >Check it on the map</a
+        >
+      }
+      @if (prefilled().includes("accommodation")) {
+        <p class="hint">Copied from your RSVP. Change it if it's different.</p>
+      }
+    </fieldset>
+  }
+  @if (!closed()) {
+    <div class="actions">
+      <button mat-flat-button type="submit" [disabled]="saving()">
+        {{ saving() ? "Saving…" : guest().rsvp ? "Update RSVP" : "Send RSVP" }}
+      </button>
+    </div>
+  }
+</form>

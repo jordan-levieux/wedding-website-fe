@@ -1,0 +1,18 @@
+.login {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 0 auto;
+  max-width: 32rem;
+  padding: 4rem 1rem;
+  text-align: center;
+}
+
+.google-button {
+  min-height: 44px;
+}
+
+.error {
+  color: var(--mat-sys-error);
+}

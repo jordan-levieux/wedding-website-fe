@@ -1,14 +1,12 @@
 import { Routes } from "@angular/router";
 import { ErrorPage } from "./error-page/error-page";
-import { HomePage } from "./home-page/home-page";
-import { RsvpPage } from "./rsvp-page/rsvp-page";
 import { LoginPage } from "./login-page/login-page";
-import { authGuard } from "./auth-guard";
+import { authGuard, landingGuard } from "./auth-guard";
 
 export const routes: Routes = [
   {
     path: "login",
-    component: LoginPage
+    component: LoginPage,
   },
   {
     path: "",
@@ -16,16 +14,17 @@ export const routes: Routes = [
     children: [
       {
         path: "",
-        redirectTo: "home",
-        pathMatch: "full"
+        pathMatch: "full",
+        canActivate: [landingGuard],
+        children: [],
       },
       {
         path: "home",
-        component: HomePage,
+        loadComponent: () => import("./home-page/home-page").then((m) => m.HomePage),
       },
       {
         path: "rsvp",
-        component: RsvpPage,
+        loadComponent: () => import("./rsvp-page/rsvp-page").then((m) => m.RsvpPage),
       },
       {
         path: "**",

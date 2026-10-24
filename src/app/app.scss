@@ -1,5 +1,15 @@
 .parent-layout {
-    display: grid;
-    grid-template-rows: auto 1fr;
-    height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: 100vh;
+}
+
+.urgent {
+  --mat-badge-background-color: var(--mat-sys-error);
+  --mat-badge-text-color: var(--mat-sys-on-error);
+}
+
+.reminder {
+  --mat-badge-background-color: var(--mat-sys-tertiary);
+  --mat-badge-text-color: var(--mat-sys-on-tertiary);
 }

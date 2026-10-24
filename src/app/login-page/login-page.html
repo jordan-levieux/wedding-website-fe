@@ -1,1 +1,13 @@
-<p>Please login to continue...</p>
+<main class="login">
+  <h1>HJ Wedding</h1>
+  <p>Please sign in with Google to see the details and RSVP.</p>
+
+  <div #googleButton class="google-button" [hidden]="loggingIn()"></div>
+
+  @if (loggingIn()) {
+    <mat-spinner diameter="32" aria-label="Signing you in" />
+  }
+  @if (loginError(); as error) {
+    <p class="error" role="alert">{{ error }}</p>
+  }
+</main>
