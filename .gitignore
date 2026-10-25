@@ -4,3 +4,4 @@ node_modules/
 public/back-grounds/
 scripts/
 .firebase/
+src/environments/maps-key.ts

@@ -2,6 +2,10 @@
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.1.7.
 
+## Google Maps key
+
+The Maps key is kept out of git. Copy `src/environments/maps-key.example.ts` to `src/environments/maps-key.ts` and fill it in; the app won't build without it.
+
 ## Development server
 
 To start a local development server, run:
