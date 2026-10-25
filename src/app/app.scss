@@ -1,7 +1,75 @@
-.parent-layout {
+// minmax(0, 1fr) columns stop wide content (maps, long words) from stretching the page past the screen
+:host {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 100dvh;
+}
+
+.shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto 1fr;
-  height: 100vh;
+  min-height: 100dvh;
+}
+
+.top-bar {
+  align-items: center;
+  backdrop-filter: blur(12px);
+  background: color-mix(in srgb, var(--mat-sys-surface) 88%, transparent);
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  column-gap: 1rem;
+  display: grid;
+  grid-template-areas: "brand tabs account";
+  grid-template-columns: auto 1fr auto;
+  padding: env(safe-area-inset-top) max(1rem, env(safe-area-inset-right)) 0
+    max(1rem, env(safe-area-inset-left));
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.brand {
+  align-items: baseline;
+  color: var(--mat-sys-primary);
+  display: flex;
+  font: var(--mat-sys-headline-small);
+  font-weight: 600;
+  grid-area: brand;
+  text-decoration: none;
+
+  .amp {
+    color: var(--mat-sys-tertiary);
+    font-style: italic;
+    margin-inline: 0.125rem;
+  }
+}
+
+.tabs {
+  background: transparent;
+  border-bottom: none;
+  grid-area: tabs;
+}
+
+.account {
+  grid-area: account;
+}
+
+// the router-outlet element is a grid item too, so pack rows at the top rather than sharing the height
+.content {
+  align-content: start;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+// phones: monogram and account on top, tabs full width underneath
+@media (max-width: 599px) {
+  .top-bar {
+    grid-template-areas:
+      "brand account"
+      "tabs tabs";
+    grid-template-columns: 1fr auto;
+    padding-top: calc(0.25rem + env(safe-area-inset-top));
+  }
 }
 
 .urgent {
@@ -10,6 +78,6 @@
 }
 
 .reminder {
-  --mat-badge-background-color: var(--mat-sys-tertiary);
-  --mat-badge-text-color: var(--mat-sys-on-tertiary);
+  --mat-badge-background-color: var(--mat-sys-secondary);
+  --mat-badge-text-color: var(--mat-sys-on-secondary);
 }

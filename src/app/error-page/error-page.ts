@@ -1,9 +1,13 @@
-import { Component } from "@angular/core";
+import { ChangeDetectionStrategy, Component } from "@angular/core";
+import { MatButtonModule } from "@angular/material/button";
+import { MatIconModule } from "@angular/material/icon";
+import { RouterLink } from "@angular/router";
 
 @Component({
-  imports: [],
   selector: "app-error-page",
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: "./error-page.scss",
   templateUrl: "./error-page.html",
+  imports: [MatButtonModule, MatIconModule, RouterLink],
 })
 export class ErrorPage {}

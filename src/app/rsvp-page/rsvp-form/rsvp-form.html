@@ -1,88 +1,118 @@
-<form (submit)="onSubmit($event)" novalidate>
-  <fieldset>
-    <legend>
+<form class="form" (submit)="onSubmit($event)" novalidate>
+  <div class="question" role="group" [attr.aria-labelledby]="id() + '-attending'">
+    <h3 [id]="id() + '-attending'">
       {{ isSelf() ? "Will you be joining us?" : "Will " + guest().name + " be joining us?" }}
-    </legend>
-    <mat-radio-group [formField]="rsvpForm.attending" class="options">
-      <mat-radio-button value="yes">Yes, wouldn't miss it</mat-radio-button>
-      <mat-radio-button value="no">Sadly not</mat-radio-button>
-    </mat-radio-group>
+    </h3>
+    <mat-button-toggle-group [formField]="rsvpForm.attending" class="choice">
+      <mat-button-toggle value="yes">Joyfully accept</mat-button-toggle>
+      <mat-button-toggle value="no">Regretfully decline</mat-button-toggle>
+    </mat-button-toggle-group>
     @if (errorOf(rsvpForm.attending); as error) {
       <p class="error" role="alert">{{ error }}</p>
     }
-  </fieldset>
+  </div>
 
   @if (attending()) {
-    <mat-form-field>
-      <mat-label>Dietary requirements</mat-label>
-      <mat-select [formField]="rsvpForm.dietary">
+    <div class="question" role="group" [attr.aria-labelledby]="id() + '-dietary'">
+      <h3 [id]="id() + '-dietary'">Any dietary requirements?</h3>
+      <mat-chip-listbox
+        [formField]="rsvpForm.dietary"
+        class="chips"
+        [attr.aria-labelledby]="id() + '-dietary'"
+      >
         @for (option of dietaryOptions; track option.value) {
-          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+          <mat-chip-option [value]="option.value">{{ option.label }}</mat-chip-option>
         }
-      </mat-select>
-    </mat-form-field>
-    @if (errorOf(rsvpForm.dietary); as error) {
-      <p class="error" role="alert">{{ error }}</p>
-    }
-    @if (model().dietary === "other") {
-      <mat-form-field>
-        <mat-label>What should we know?</mat-label>
-        <textarea matInput [formField]="rsvpForm.dietaryOtherDetails" rows="2"></textarea>
-        <mat-hint align="end"
-          >{{ model().dietaryOtherDetails.length }} / {{ maxDetailsLength }}</mat-hint
-        >
-      </mat-form-field>
-      @if (errorOf(rsvpForm.dietaryOtherDetails); as error) {
+      </mat-chip-listbox>
+      @if (errorOf(rsvpForm.dietary); as error) {
         <p class="error" role="alert">{{ error }}</p>
       }
-    }
-
-    <fieldset>
-      <legend>Would {{ you() }} like a seat on the shuttle?</legend>
-      <mat-radio-group [formField]="rsvpForm.shuttle" class="options">
-        <mat-radio-button value="yes">Yes please</mat-radio-button>
-        <mat-radio-button value="no">No thanks</mat-radio-button>
-        <mat-radio-button value="unsure">Not sure yet</mat-radio-button>
-      </mat-radio-group>
-      @if (prefilled().includes("shuttle")) {
-        <p class="hint">Copied from your RSVP. Change it if it's different.</p>
+      @if (model().dietary === "other") {
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>What should we know?</mat-label>
+          <textarea
+            matInput
+            [formField]="rsvpForm.dietaryOtherDetails"
+            cdkTextareaAutosize
+            cdkAutosizeMinRows="2"
+          ></textarea>
+          <mat-hint align="end"
+            >{{ model().dietaryOtherDetails.length }} / {{ maxDetailsLength }}</mat-hint
+          >
+        </mat-form-field>
+        @if (errorOf(rsvpForm.dietaryOtherDetails); as error) {
+          <p class="error" role="alert">{{ error }}</p>
+        }
       }
-    </fieldset>
+    </div>
 
-    <fieldset>
-      <legend>
+    <div class="question" role="group" [attr.aria-labelledby]="id() + '-shuttle'">
+      <h3 [id]="id() + '-shuttle'">
+        Would {{ isSelf() ? "you" : guest().name }} like a seat on the shuttle?
+      </h3>
+      <mat-button-toggle-group [formField]="rsvpForm.shuttle" class="choice">
+        <mat-button-toggle value="yes">Yes please</mat-button-toggle>
+        <mat-button-toggle value="no">No thanks</mat-button-toggle>
+        <mat-button-toggle value="unsure">Not sure</mat-button-toggle>
+      </mat-button-toggle-group>
+      @if (prefilled().includes("shuttle")) {
+        <p class="copied"><mat-icon>content_copy</mat-icon> Copied from your RSVP</p>
+      }
+    </div>
+
+    <div class="question" role="group" [attr.aria-labelledby]="id() + '-staying'">
+      <h3 [id]="id() + '-staying'">
         Where {{ isSelf() ? "are you" : "is " + guest().name }} staying?
-        <span class="optional">(optional)</span>
-      </legend>
-      <p class="hint">
-        It helps us plan the shuttle and know where to find everyone in an emergency. On Google
-        Maps, press and hold on the place, then copy the coordinates or share link here.
-      </p>
+        <span class="optional">Optional</span>
+      </h3>
+      <p class="hint">It helps us plan the shuttle and find everyone in an emergency.</p>
       @if (venueAccommodation()) {
-        <p class="venue">
-          We'd love you to stay at the venue! Please book directly with them, they'll take care of
-          everything.
+        <p class="callout">
+          <mat-icon>hotel</mat-icon>
+          <span
+            >We'd love you to stay at the venue! Book directly with them, they'll take care of
+            everything.</span
+          >
         </p>
       }
-      <mat-form-field>
-        <mat-label>Coordinates or Google Maps link</mat-label>
-        <input matInput [formField]="rsvpForm.accommodation" placeholder="-33.92, 18.42" />
-      </mat-form-field>
-      @if (errorOf(rsvpForm.accommodation); as error) {
-        <p class="error" role="alert">{{ error }}</p>
-      } @else if (location(); as location) {
-        <a class="map-link" [href]="mapsLink(location)" target="_blank" rel="noopener"
-          >Check it on the map</a
-        >
+      @if (location(); as location) {
+        <div class="pinned">
+          <mat-icon>place</mat-icon>
+          <span>Location pinned</span>
+          <div class="pinned-actions">
+            <a mat-button [href]="mapsLink(location)" target="_blank" rel="noopener">
+              <mat-icon>open_in_new</mat-icon> Check on Google Maps
+            </a>
+            @if (!closed()) {
+              <button mat-button type="button" (click)="onLocationPicked(null)">
+                <mat-icon>close</mat-icon> Clear
+              </button>
+            }
+          </div>
+        </div>
+      }
+      @if (!closed()) {
+        @if (mapsAvailable) {
+          <!-- each map is a billed load, so only load it once it scrolls into view -->
+          @defer (on viewport) {
+            <app-location-picker [value]="location()" (valueChange)="onLocationPicked($event)" />
+          } @placeholder {
+            <div class="map-placeholder"></div>
+          }
+        } @else {
+          <p class="hint">The map isn't available right now.</p>
+        }
       }
       @if (prefilled().includes("accommodation")) {
-        <p class="hint">Copied from your RSVP. Change it if it's different.</p>
+        <p class="copied"><mat-icon>content_copy</mat-icon> Copied from your RSVP</p>
       }
-    </fieldset>
+    </div>
   }
+
   @if (!closed()) {
     <div class="actions">
       <button mat-flat-button type="submit" [disabled]="saving()">
+        <mat-icon>{{ saving() ? "hourglass_top" : "send" }}</mat-icon>
         {{ saving() ? "Saving…" : guest().rsvp ? "Update RSVP" : "Send RSVP" }}
       </button>
     </div>

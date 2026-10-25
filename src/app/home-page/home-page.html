@@ -1,2 +1,70 @@
-    <div class="text">Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.</div>
-    <img id="back-ground-image" src="back-grounds/front-page.jpg" alt="aww.jpg"/>
+<section class="hero">
+  <img ngSrc="back-grounds/front-page.jpg" fill priority alt="" />
+  <div class="hero-text">
+    @if (self(); as self) {
+      <p class="greeting">Hi {{ self.name }}</p>
+    }
+    <h1>We're getting married</h1>
+    <p>And we'd love you to celebrate with us.</p>
+  </div>
+</section>
+
+<main class="page">
+  @if (group(); as group) {
+    <mat-card appearance="outlined" class="rsvp-card" [class]="rsvpState()">
+      <mat-card-content class="rsvp-content">
+        @switch (rsvpState()) {
+          @case ("todo") {
+            <mat-icon class="rsvp-icon">mail</mat-icon>
+            <div class="rsvp-text">
+              <h2>Will you join us?</h2>
+              <p>Please let us know by {{ group.rsvpDeadline | date: "d MMMM y" }}.</p>
+            </div>
+            <a mat-flat-button routerLink="/rsvp">RSVP now</a>
+          }
+          @case ("group") {
+            <mat-icon class="rsvp-icon">group</mat-icon>
+            <div class="rsvp-text">
+              <h2>Almost there</h2>
+              <p>
+                {{ stillToDo() }} {{ stillToDo() === 1 ? "person" : "people" }} in your group still
+                {{ stillToDo() === 1 ? "needs" : "need" }} a reply or a few details.
+              </p>
+            </div>
+            <a mat-flat-button routerLink="/rsvp">Finish replies</a>
+          }
+          @case ("done") {
+            <mat-icon class="rsvp-icon">check_circle</mat-icon>
+            <div class="rsvp-text">
+              <h2>You're all set</h2>
+              <p>
+                Thanks for replying. You can change your answers until
+                {{ group.rsvpDeadline | date: "d MMMM y" }}.
+              </p>
+            </div>
+            <a mat-stroked-button routerLink="/rsvp">View RSVP</a>
+          }
+          @case ("closed") {
+            <mat-icon class="rsvp-icon">event_busy</mat-icon>
+            <div class="rsvp-text">
+              <h2>Replies have closed</h2>
+              <p>If anything has changed, please get in touch with us directly.</p>
+            </div>
+            <a mat-stroked-button routerLink="/rsvp">View RSVP</a>
+          }
+        }
+      </mat-card-content>
+    </mat-card>
+  }
+
+  <section class="details">
+    <h2>The details</h2>
+    <p class="muted">
+      Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae
+      pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean
+      sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis
+      massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti
+      sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.
+    </p>
+  </section>
+</main>

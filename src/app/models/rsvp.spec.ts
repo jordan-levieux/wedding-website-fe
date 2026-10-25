@@ -27,7 +27,7 @@ describe("draftFor", () => {
         dietary: null,
         dietaryOtherDetails: "",
         shuttle: "yes",
-        accommodation: "-33.9249, 18.4241",
+        accommodation: { lat: -33.9249, lng: 18.4241 },
       },
       prefilled: ["shuttle", "accommodation"],
     });
@@ -38,7 +38,7 @@ describe("draftFor", () => {
     const other = guest(2, rsvp({ shuttle: false, accommodation: null }));
     const { draft, prefilled } = draftFor(other, self);
     expect(draft.shuttle).toBe("no");
-    expect(draft.accommodation).toBe("-33.9249, 18.4241");
+    expect(draft.accommodation).toEqual({ lat: -33.9249, lng: 18.4241 });
     expect(prefilled).toEqual(["accommodation"]);
   });
 
@@ -57,7 +57,7 @@ describe("toRsvpInput", () => {
         dietary: "other",
         dietaryOtherDetails: "nuts",
         shuttle: "yes",
-        accommodation: "-33.9, 18.4",
+        accommodation: { lat: -33.9, lng: 18.4 },
       }),
     ).toEqual({
       guestId: 2,
@@ -76,7 +76,7 @@ describe("toRsvpInput", () => {
         dietary: "vegetarian",
         dietaryOtherDetails: "left over",
         shuttle: "unsure",
-        accommodation: "",
+        accommodation: null,
       }),
     ).toEqual({
       guestId: 2,

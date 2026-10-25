@@ -1,23 +1,100 @@
-:host {   
-    align-items: center;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    justify-content: center;
-    overflow: hidden;
+:host {
+  align-content: start;
+  display: grid;
+}
 
-    #back-ground-image {
-        display: flex;
-        max-height: 100%;
-        min-width: 100%;
-        object-fit: cover;
-        pointer-events: none;
-    }
+// the photo fills the hero; the text sits on a gradient so it stays readable over any part of it
+.hero {
+  display: grid;
+  min-height: clamp(320px, 62dvh, 600px);
+  position: relative;
+}
 
-    .text {
-        display: flex;
-        flex-direction: column;
-        position: absolute;
-        width: 70%;
-    }
+.hero-text {
+  align-content: end;
+  background: linear-gradient(to bottom, transparent 35%, rgb(20 24 16 / 0.72));
+  color: #fff;
+  display: grid;
+  gap: 0.5rem;
+  // lines the text up with the content column below on wide screens
+  padding: 2rem max(1.25rem, env(safe-area-inset-left), calc((100% - 46rem) / 2 + 1rem))
+    clamp(1.5rem, 5vw, 3rem);
+  z-index: 1;
+
+  h1 {
+    font: var(--mat-sys-display-medium);
+    font-size: clamp(2.5rem, 8vw, 3.75rem);
+    line-height: 1.05;
+  }
+}
+
+.greeting {
+  font: var(--mat-sys-title-medium);
+  letter-spacing: 0.08em;
+  opacity: 0.9;
+  text-transform: uppercase;
+}
+
+.hero img {
+  object-fit: cover;
+}
+
+.rsvp-content {
+  align-items: center;
+  display: grid;
+  gap: 1rem 1.25rem;
+  grid-template-areas: "icon text action";
+  grid-template-columns: auto 1fr auto;
+  padding: 1.25rem;
+}
+
+.rsvp-icon {
+  color: var(--mat-sys-primary);
+  font-size: 2.25rem;
+  grid-area: icon;
+  height: 2.25rem;
+  width: 2.25rem;
+}
+
+.rsvp-text {
+  display: grid;
+  gap: 0.25rem;
+  grid-area: text;
+
+  h2 {
+    font: var(--mat-sys-title-large);
+  }
+
+  p {
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.rsvp-content > a {
+  grid-area: action;
+}
+
+.rsvp-card.todo,
+.rsvp-card.group {
+  background: var(--mat-sys-primary-container);
+  border-color: transparent;
+
+  .rsvp-icon,
+  .rsvp-text p {
+    color: var(--mat-sys-on-primary-container);
+  }
+}
+
+.details {
+  display: grid;
+  gap: 0.75rem;
+}
+
+@media (max-width: 599px) {
+  .rsvp-content {
+    grid-template-areas:
+      "icon text"
+      "action action";
+    grid-template-columns: auto 1fr;
+  }
 }

@@ -13,7 +13,11 @@ describe("App RSVP tab indicator", () => {
         { provide: AuthService, useValue: { accessToken: signal("token") } },
         {
           provide: GroupService,
-          useValue: { attention: signal(attention), rsvpOpen: signal(rsvpOpen) },
+          useValue: {
+            attention: signal(attention),
+            rsvpOpen: signal(rsvpOpen),
+            self: signal({ guestId: 1, name: "Alice", surname: "Smith", rsvp: null }),
+          },
         },
       ],
     });

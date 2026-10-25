@@ -4,11 +4,11 @@ import { provideHttpClient } from "@angular/common/http";
 import { HttpTestingController, provideHttpClientTesting } from "@angular/common/http/testing";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { MatExpansionPanelHarness } from "@angular/material/expansion/testing";
-import { MatInputHarness } from "@angular/material/input/testing";
-import { MatRadioGroupHarness } from "@angular/material/radio/testing";
-import { MatSelectHarness } from "@angular/material/select/testing";
+import { MatButtonToggleGroupHarness } from "@angular/material/button-toggle/testing";
+import { MatChipListboxHarness } from "@angular/material/chips/testing";
 import { environment } from "../../environments/environment";
 import { Group, Rsvp } from "../models/api";
+import { GoogleMapsLoader } from "../services/googleMapsLoader";
 import { GroupService } from "../services/groupService";
 import { RsvpPage } from "./rsvp-page";
 
@@ -48,7 +48,12 @@ describe("RsvpPage", () => {
 
   const setup = async (group: Group) => {
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        // the map itself is covered by the RsvpForm tests
+        { provide: GoogleMapsLoader, useValue: { available: false } },
+      ],
     });
     http = TestBed.inject(HttpTestingController);
     groupService = TestBed.inject(GroupService);
@@ -71,26 +76,25 @@ describe("RsvpPage", () => {
 
   it("once they've answered, lists the group with the next person to answer opened", async () => {
     await setup(makeGroup());
-    expect(text()).toContain("Coming · No dietary requirements · on the shuttle");
+    expect(text()).toContain("You're coming, hooray!");
+    expect(text()).toContain("Taking the shuttle");
+    expect(text()).toContain("1 of 3 in your group have replied");
     const panels = await loader.getAllHarnesses(MatExpansionPanelHarness);
-    expect(await Promise.all(panels.map((panel) => panel.getTitle()))).toEqual([
-      "Bob Smith",
-      "Cleo Smith",
-    ]);
+    const titles = await Promise.all(panels.map((panel) => panel.getTitle()));
+    expect(titles[0]).toMatch(/^Bob Smith.*Not replied$/);
+    expect(titles[1]).toMatch(/^Cleo Smith.*Not replied$/);
     expect(await Promise.all(panels.map((panel) => panel.isExpanded()))).toEqual([true, false]);
-    expect(await panels[0]!.getDescription()).toBe("Hasn't RSVPed yet");
   });
 
   it("saves someone else's RSVP with the copied shuttle and accommodation answers", async () => {
     await setup(makeGroup());
     const bobPanel = (await loader.getAllHarnesses(MatExpansionPanelHarness))[0]!;
-    await (
-      await bobPanel.getHarness(MatRadioGroupHarness)
-    ).checkRadioButton({ label: "Yes, wouldn't miss it" });
-    const dietary = await bobPanel.getHarness(MatSelectHarness);
-    await dietary.open();
-    await dietary.clickOptions({ text: "Vegetarian" });
-    expect(await (await bobPanel.getHarness(MatInputHarness)).getValue()).toBe("-33.9249, 18.4241");
+    const [accept] = await (
+      await bobPanel.getHarness(MatButtonToggleGroupHarness)
+    ).getToggles({ text: "Joyfully accept" });
+    await accept!.check();
+    await (await bobPanel.getHarness(MatChipListboxHarness)).selectChips({ text: "Vegetarian" });
+    expect(await bobPanel.getTextContent()).toContain("Location pinned");
 
     (fixture.nativeElement as HTMLElement)
       .querySelectorAll<HTMLButtonElement>("mat-expansion-panel button[type=submit]")[0]!
@@ -117,15 +121,16 @@ describe("RsvpPage", () => {
     await fixture.whenStable();
 
     const panels = await loader.getAllHarnesses(MatExpansionPanelHarness);
-    expect(await panels[0]!.getDescription()).toBe("Coming");
+    expect(await panels[0]!.getTitle()).toMatch(/^Bob Smith.*Coming$/);
     expect(await panels[1]!.isExpanded()).toBe(true);
   });
 
   it("shows the venue suggestion to guests who are encouraged to book there", async () => {
     await setup(makeGroup({ roles: ["venue_accommodation"] }, null));
-    await (
-      await loader.getHarness(MatRadioGroupHarness)
-    ).checkRadioButton({ label: "Yes, wouldn't miss it" });
+    const [accept] = await (
+      await loader.getHarness(MatButtonToggleGroupHarness)
+    ).getToggles({ text: "Joyfully accept" });
+    await accept!.check();
     await fixture.whenStable();
     expect(text()).toContain("We'd love you to stay at the venue");
   });

@@ -1,32 +1,57 @@
 import { DatePipe } from "@angular/common";
-import { Component, computed, inject, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
+import { MatCardModule } from "@angular/material/card";
 import { MatExpansionModule } from "@angular/material/expansion";
+import { MatIconModule } from "@angular/material/icon";
+import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { GroupGuest, Rsvp, RsvpInput } from "../models/api";
 import { mapsLink } from "../models/coordinates";
-import { DIETARY_LABELS, draftFor, guestStatus } from "../models/rsvp";
+import { DIETARY_LABELS, draftFor, GuestStatus, guestStatus } from "../models/rsvp";
 import { apiErrorMessage } from "../services/authService";
 import { GroupService } from "../services/groupService";
 import { RsvpForm } from "./rsvp-form/rsvp-form";
 
+const STATUS_LABELS: Record<GuestStatus, { label: string; icon: string }> = {
+  unanswered: { label: "Not replied", icon: "schedule" },
+  incomplete: { label: "Details missing", icon: "error_outline" },
+  complete: { label: "Replied", icon: "check_circle" },
+};
+
 @Component({
   selector: "app-rsvp-page",
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: "./rsvp-page.scss",
   templateUrl: "./rsvp-page.html",
-  imports: [DatePipe, MatButtonModule, MatExpansionModule, RsvpForm],
+  imports: [
+    DatePipe,
+    MatButtonModule,
+    MatCardModule,
+    MatExpansionModule,
+    MatIconModule,
+    MatProgressBarModule,
+    RsvpForm,
+  ],
 })
 export class RsvpPage {
   private groupService = inject(GroupService);
   private snackBar = inject(MatSnackBar);
 
   protected readonly mapsLink = mapsLink;
+  protected readonly dietaryLabels = DIETARY_LABELS;
+  protected readonly statusLabels = STATUS_LABELS;
   protected group = this.groupService.group;
   protected self = this.groupService.self;
   protected open = this.groupService.rsvpOpen;
   protected venueAccommodation = computed(
     () => this.group()?.roles.includes("venue_accommodation") ?? false,
   );
+  protected progress = computed(() => {
+    const guests = this.group()?.guests ?? [];
+    const replied = guests.filter((guest) => guest.rsvp).length;
+    return { replied, total: guests.length, percent: (100 * replied) / (guests.length || 1) };
+  });
   protected selfDraft = computed(() => {
     const self = this.self();
     return self ? draftFor(self, self) : null;
@@ -43,17 +68,11 @@ export class RsvpPage {
   protected editingSelf = signal(false);
   protected savingGuestId = signal<number | null>(null);
 
-  protected describe(rsvp: Rsvp): string {
-    if (!rsvp.attending) {
-      return "Not coming";
+  protected shuttleText(rsvp: Rsvp): string {
+    if (rsvp.shuttle === null) {
+      return "Not sure about the shuttle yet";
     }
-    const shuttle =
-      rsvp.shuttle === null
-        ? "shuttle: not sure yet"
-        : rsvp.shuttle
-          ? "on the shuttle"
-          : "no shuttle";
-    return ["Coming", DIETARY_LABELS[rsvp.dietary!], shuttle].join(" · ");
+    return rsvp.shuttle ? "Taking the shuttle" : "Not taking the shuttle";
   }
 
   protected answeredBy(guest: GroupGuest): string | null {

@@ -1,33 +1,52 @@
 @if (!userToken()) {
   <router-outlet />
 } @else {
-  <div class="parent-layout">
-    <nav mat-tab-nav-bar [tabPanel]="tabPanel">
-      @for (tab of tabs; track tab.route) {
-        <a
-          mat-tab-link
-          [routerLink]="tab.route"
-          routerLinkActive
-          #link="routerLinkActive"
-          [active]="link.isActive"
-        >
-          @if (tab.route === "/rsvp" && rsvpBadge(); as badge) {
-            <span
-              [class]="badge.kind"
-              [matBadge]="badge.count"
-              matBadgeOverlap="false"
-              [matBadgeDescription]="badge.tooltip"
-              [matTooltip]="badge.tooltip"
-              >{{ tab.title }}</span
-            >
-          } @else {
-            {{ tab.title }}
-          }
-        </a>
-      }
-    </nav>
-    <mat-tab-nav-panel #tabPanel></mat-tab-nav-panel>
-
-    <router-outlet />
+  <div class="shell">
+    <header class="top-bar">
+      <a class="brand" routerLink="/home" aria-label="Home">H<span class="amp">&</span>J</a>
+      <nav
+        mat-tab-nav-bar
+        class="tabs"
+        [tabPanel]="tabPanel"
+        [mat-stretch-tabs]="isHandset()"
+        mat-align-tabs="center"
+      >
+        @for (tab of tabs; track tab.route) {
+          <a
+            mat-tab-link
+            [routerLink]="tab.route"
+            routerLinkActive
+            #link="routerLinkActive"
+            [active]="link.isActive"
+          >
+            @if (tab.route === "/rsvp" && rsvpBadge(); as badge) {
+              <span
+                [class]="badge.kind"
+                [matBadge]="badge.count"
+                matBadgeOverlap="false"
+                [matBadgeDescription]="badge.tooltip"
+                [title]="badge.tooltip"
+                >{{ tab.title }}</span
+              >
+            } @else {
+              {{ tab.title }}
+            }
+          </a>
+        }
+      </nav>
+      <button
+        mat-icon-button
+        class="account"
+        type="button"
+        [attr.aria-label]="signOutLabel()"
+        [title]="signOutLabel()"
+        (click)="signOut()"
+      >
+        <mat-icon>logout</mat-icon>
+      </button>
+    </header>
+    <mat-tab-nav-panel #tabPanel class="content">
+      <router-outlet />
+    </mat-tab-nav-panel>
   </div>
 }

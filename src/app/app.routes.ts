@@ -1,12 +1,10 @@
 import { Routes } from "@angular/router";
-import { ErrorPage } from "./error-page/error-page";
-import { LoginPage } from "./login-page/login-page";
 import { authGuard, landingGuard } from "./auth-guard";
 
 export const routes: Routes = [
   {
     path: "login",
-    component: LoginPage,
+    loadComponent: () => import("./login-page/login-page").then((m) => m.LoginPage),
   },
   {
     path: "",
@@ -28,7 +26,7 @@ export const routes: Routes = [
       },
       {
         path: "**",
-        component: ErrorPage,
+        loadComponent: () => import("./error-page/error-page").then((m) => m.ErrorPage),
       },
     ],
   },

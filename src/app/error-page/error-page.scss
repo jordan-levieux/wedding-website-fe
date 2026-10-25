@@ -1,0 +1,19 @@
+:host {
+  display: grid;
+}
+
+.not-found {
+  align-content: center;
+  display: grid;
+  gap: 1rem;
+  justify-items: center;
+  padding: 3rem 1rem;
+  text-align: center;
+}
+
+.icon {
+  color: var(--mat-sys-tertiary);
+  font-size: 3rem;
+  height: 3rem;
+  width: 3rem;
+}

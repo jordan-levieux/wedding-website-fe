@@ -1,0 +1,38 @@
+<div #search class="search"></div>
+
+@switch (status()) {
+  @case ("loading") {
+    <div class="map placeholder" role="status">
+      <mat-spinner diameter="28" />
+      <span>Loading the map…</span>
+    </div>
+  }
+  @case ("error") {
+    <p class="error" role="alert">
+      The map couldn't load right now. Please try again later, as where you're staying is optional.
+    </p>
+  }
+  @case ("ready") {
+    <div class="map">
+      <google-map
+        width="100%"
+        height="100%"
+        [center]="center()"
+        [zoom]="zoom()"
+        [options]="options()"
+        (mapClick)="onMapClick($event)"
+        (authFailure)="onAuthFailure()"
+      >
+        @if (value(); as position) {
+          <map-advanced-marker
+            [position]="position"
+            [gmpDraggable]="true"
+            title="Where you're staying"
+            (mapDragend)="onMarkerDragEnd($event)"
+          />
+        }
+      </google-map>
+    </div>
+    <p class="hint">Search above, tap the map, or drag the pin to where you're staying.</p>
+  }
+}

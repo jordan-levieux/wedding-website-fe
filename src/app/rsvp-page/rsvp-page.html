@@ -1,90 +1,142 @@
 @if (group(); as group) {
   @if (self(); as self) {
-    <main class="rsvp">
-      <h1>RSVP</h1>
-      @if (open()) {
-        <p>Please let us know by {{ group.rsvpDeadline | date: "d MMMM y" }}.</p>
-      } @else {
-        <p class="closed" role="status">
-          RSVPs closed on {{ group.rsvpDeadline | date: "d MMMM y" }}. If anything has changed,
-          please get in touch with us directly.
+    <main class="page">
+      <header class="intro">
+        <p class="eyebrow">
+          @if (open()) {
+            Kindly reply by {{ group.rsvpDeadline | date: "d MMMM y" }}
+          } @else {
+            Replies closed
+          }
+        </p>
+        <h1>RSVP</h1>
+        @if (progress().total > 1) {
+          <div class="progress">
+            <span class="muted"
+              >{{ progress().replied }} of {{ progress().total }} in your group have replied</span
+            >
+            <mat-progress-bar mode="determinate" [value]="progress().percent" />
+          </div>
+        }
+      </header>
+
+      @if (!open()) {
+        <p class="notice" role="status">
+          <mat-icon>event_busy</mat-icon>
+          <span
+            >RSVPs closed on {{ group.rsvpDeadline | date: "d MMMM y" }}. If anything has changed,
+            please get in touch with us directly.</span
+          >
         </p>
       }
 
-      <section>
-        <h2>Hi {{ self.name }}</h2>
-        @if (self.rsvp && !editingSelf()) {
-          <div class="summary">
-            <p>{{ describe(self.rsvp) }}</p>
-            @if (self.rsvp.accommodation; as location) {
-              <a [href]="mapsLink(location)" target="_blank" rel="noopener">Where you're staying</a>
-            }
+      <mat-card appearance="outlined" class="card">
+        <mat-card-header>
+          <mat-card-title>Hi {{ self.name }}</mat-card-title>
+          <mat-card-subtitle>Your RSVP</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content class="card-content">
+          @if (self.rsvp && !editingSelf()) {
+            <ul class="facts">
+              <li>
+                <mat-icon>{{ self.rsvp.attending ? "celebration" : "event_busy" }}</mat-icon>
+                <span>{{
+                  self.rsvp.attending ? "You're coming, hooray!" : "You can't make it"
+                }}</span>
+              </li>
+              @if (self.rsvp.attending) {
+                <li>
+                  <mat-icon>restaurant</mat-icon>
+                  <span
+                    >{{ dietaryLabels[self.rsvp.dietary!] }}
+                    @if (self.rsvp.dietaryOtherDetails) {
+                      ({{ self.rsvp.dietaryOtherDetails }})
+                    }
+                  </span>
+                </li>
+                <li>
+                  <mat-icon>directions_bus</mat-icon>
+                  <span>{{ shuttleText(self.rsvp) }}</span>
+                </li>
+                <li>
+                  <mat-icon>hotel</mat-icon>
+                  @if (self.rsvp.accommodation; as location) {
+                    <a [href]="mapsLink(location)" target="_blank" rel="noopener"
+                      >Where you're staying</a
+                    >
+                  } @else {
+                    <span class="muted">Accommodation not added yet</span>
+                  }
+                </li>
+              }
+            </ul>
             @if (answeredBy(self); as name) {
               <p class="meta">Answered by {{ name }}</p>
             }
             @if (open()) {
-              <button mat-stroked-button type="button" (click)="editingSelf.set(true)">
-                Change my RSVP
-              </button>
+              <div class="card-actions">
+                <button mat-stroked-button type="button" (click)="editingSelf.set(true)">
+                  <mat-icon>edit</mat-icon> Change my RSVP
+                </button>
+              </div>
             }
-          </div>
-        } @else if (selfDraft(); as selfDraft) {
-          <app-rsvp-form
-            [guest]="self"
-            [draft]="selfDraft.draft"
-            [isSelf]="true"
-            [venueAccommodation]="venueAccommodation()"
-            [closed]="!open()"
-            [saving]="savingGuestId() === self.guestId"
-            (save)="save($event)"
-          />
-          @if (self.rsvp) {
-            <button mat-button type="button" (click)="editingSelf.set(false)">Cancel</button>
+          } @else if (selfDraft(); as selfDraft) {
+            <app-rsvp-form
+              [guest]="self"
+              [draft]="selfDraft.draft"
+              [isSelf]="true"
+              [venueAccommodation]="venueAccommodation()"
+              [closed]="!open()"
+              [saving]="savingGuestId() === self.guestId"
+              (save)="save($event)"
+            />
+            @if (self.rsvp) {
+              <div class="card-actions">
+                <button mat-button type="button" (click)="editingSelf.set(false)">Cancel</button>
+              </div>
+            }
           }
-        }
-      </section>
+        </mat-card-content>
+      </mat-card>
 
       @if (self.rsvp && others().length) {
-        <section>
-          <h2>Your group</h2>
-          <p>
-            You can RSVP for everyone else in your group too. We've copied your shuttle and
-            accommodation answers across, so just change anything that's different.
-          </p>
-          <mat-accordion multi>
+        <section class="group">
+          <div class="group-intro">
+            <h2>Your group</h2>
+            <p class="muted">
+              You can reply for everyone else too. We've copied your shuttle and accommodation
+              answers across, so just change anything that's different.
+            </p>
+          </div>
+          <mat-accordion multi class="accordion">
             @for (other of others(); track other.guest.guestId) {
               <mat-expansion-panel [expanded]="other.guest.guestId === nextUnansweredId()">
-                <mat-expansion-panel-header>
-                  <mat-panel-title
-                    >{{ other.guest.name }} {{ other.guest.surname }}</mat-panel-title
-                  >
-                  <mat-panel-description>
+                <mat-expansion-panel-header class="panel-header">
+                  <mat-panel-title class="panel-title">
+                    <span class="name">{{ other.guest.name }} {{ other.guest.surname }}</span>
                     <span class="status" [class]="other.status">
-                      @switch (other.status) {
-                        @case ("unanswered") {
-                          Hasn't RSVPed yet
-                        }
-                        @case ("incomplete") {
-                          Coming · shuttle or accommodation missing
-                        }
-                        @default {
-                          {{ other.guest.rsvp?.attending ? "Coming" : "Not coming" }}
-                        }
+                      <mat-icon>{{ statusLabels[other.status].icon }}</mat-icon>
+                      @if (other.status === "complete") {
+                        {{ other.guest.rsvp?.attending ? "Coming" : "Not coming" }}
+                      } @else {
+                        {{ statusLabels[other.status].label }}
                       }
                     </span>
-                  </mat-panel-description>
+                  </mat-panel-title>
                 </mat-expansion-panel-header>
-                @if (answeredBy(other.guest); as name) {
-                  <p class="meta">Last answered by {{ name }}</p>
-                }
-                <app-rsvp-form
-                  [guest]="other.guest"
-                  [draft]="other.draft"
-                  [prefilled]="other.prefilled"
-                  [closed]="!open()"
-                  [saving]="savingGuestId() === other.guest.guestId"
-                  (save)="save($event)"
-                />
+                <div class="panel-body">
+                  @if (answeredBy(other.guest); as name) {
+                    <p class="meta">Last answered by {{ name }}</p>
+                  }
+                  <app-rsvp-form
+                    [guest]="other.guest"
+                    [draft]="other.draft"
+                    [prefilled]="other.prefilled"
+                    [closed]="!open()"
+                    [saving]="savingGuestId() === other.guest.guestId"
+                    (save)="save($event)"
+                  />
+                </div>
               </mat-expansion-panel>
             }
           </mat-accordion>

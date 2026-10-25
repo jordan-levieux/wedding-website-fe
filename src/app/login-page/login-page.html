@@ -1,13 +1,29 @@
 <main class="login">
-  <h1>HJ Wedding</h1>
-  <p>Please sign in with Google to see the details and RSVP.</p>
+  <img ngSrc="back-grounds/alt-page.jpg" fill priority alt="" />
+  <mat-card class="card" appearance="raised">
+    <mat-card-content class="card-content">
+      <p class="monogram">H<span class="amp">&</span>J</p>
+      <p class="eyebrow">You're invited</p>
+      <h1>Welcome</h1>
+      <p class="muted">
+        Sign in with Google to see the details and let us know if you can make it.
+      </p>
 
-  <div #googleButton class="google-button" [hidden]="loggingIn()"></div>
+      <div #googleButton class="google-button" [class.hidden]="loggingIn()"></div>
 
-  @if (loggingIn()) {
-    <mat-spinner diameter="32" aria-label="Signing you in" />
-  }
-  @if (loginError(); as error) {
-    <p class="error" role="alert">{{ error }}</p>
-  }
+      @if (loggingIn()) {
+        <div class="signing-in" role="status">
+          <mat-spinner diameter="28" />
+          <span>Signing you in…</span>
+        </div>
+      }
+
+      @if (loginError(); as error) {
+        <p class="error" role="alert">
+          <mat-icon>error_outline</mat-icon>
+          <span>{{ error }}</span>
+        </p>
+      }
+    </mat-card-content>
+  </mat-card>
 </main>

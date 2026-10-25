@@ -1,7 +1,16 @@
-import { Component, computed, input, linkedSignal, output } from "@angular/core";
+import { TextFieldModule } from "@angular/cdk/text-field";
 import {
-  disabled,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  input,
+  linkedSignal,
+  output,
+} from "@angular/core";
+import {
   FieldTree,
+  disabled,
   form,
   FormField,
   required,
@@ -9,27 +18,34 @@ import {
   validate,
 } from "@angular/forms/signals";
 import { MatButtonModule } from "@angular/material/button";
+import { MatButtonToggleModule } from "@angular/material/button-toggle";
+import { MatChipsModule } from "@angular/material/chips";
 import { MatFormFieldModule } from "@angular/material/form-field";
+import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
-import { MatRadioModule } from "@angular/material/radio";
-import { MatSelectModule } from "@angular/material/select";
-import { DIETARY_OPTIONS, GroupGuest, RsvpInput } from "../../models/api";
-import { mapsLink, parseCoordinates } from "../../models/coordinates";
+import { Coordinates, DIETARY_OPTIONS, GroupGuest, RsvpInput } from "../../models/api";
+import { mapsLink } from "../../models/coordinates";
 import { DIETARY_LABELS, PrefilledField, RsvpDraft, toRsvpInput } from "../../models/rsvp";
+import { GoogleMapsLoader } from "../../services/googleMapsLoader";
+import { LocationPicker } from "../location-picker/location-picker";
 
 export const MAX_DETAILS_LENGTH = 500;
 
 @Component({
   selector: "app-rsvp-form",
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: "./rsvp-form.scss",
   templateUrl: "./rsvp-form.html",
   imports: [
     FormField,
+    LocationPicker,
     MatButtonModule,
+    MatButtonToggleModule,
+    MatChipsModule,
     MatFormFieldModule,
+    MatIconModule,
     MatInputModule,
-    MatRadioModule,
-    MatSelectModule,
+    TextFieldModule,
   ],
 })
 export class RsvpForm {
@@ -48,6 +64,7 @@ export class RsvpForm {
   }));
   protected readonly maxDetailsLength = MAX_DETAILS_LENGTH;
   protected readonly mapsLink = mapsLink;
+  protected readonly mapsAvailable = inject(GoogleMapsLoader).available;
 
   // resets to the saved answer whenever the group is reloaded
   protected model = linkedSignal<RsvpDraft>(() => ({ ...this.draft() }));
@@ -69,24 +86,19 @@ export class RsvpForm {
         ? { kind: "maxLength", message: `Please keep it under ${MAX_DETAILS_LENGTH} characters` }
         : undefined;
     });
-    validate(path.accommodation, ({ value, valueOf }) =>
-      valueOf(path.attending) === "yes" && value().trim() && !parseCoordinates(value())
-        ? {
-            kind: "coordinates",
-            message:
-              "We couldn't find a location in that. Paste coordinates like -33.92, 18.42 or a full Google Maps link.",
-          }
-        : undefined,
-    );
   });
 
+  protected id = computed(() => `rsvp-${this.guest().guestId}`);
   protected attending = computed(() => this.model().attending === "yes");
-  protected location = computed(() => parseCoordinates(this.model().accommodation));
-  protected you = computed(() => (this.isSelf() ? "you" : this.guest().name));
+  protected location = computed(() => this.model().accommodation);
 
   protected errorOf<T>(field: FieldTree<T>): string | undefined {
     const state = field();
     return state.touched() ? state.errors()[0]?.message : undefined;
+  }
+
+  protected onLocationPicked(coordinates: Coordinates | null) {
+    this.model.update((draft) => ({ ...draft, accommodation: coordinates }));
   }
 
   protected onSubmit(event: Event) {

@@ -1,8 +1,12 @@
-import { Component, computed, inject } from "@angular/core";
+import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
+import { ChangeDetectionStrategy, Component, computed, inject } from "@angular/core";
+import { toSignal } from "@angular/core/rxjs-interop";
 import { MatBadgeModule } from "@angular/material/badge";
+import { MatButtonModule } from "@angular/material/button";
+import { MatIconModule } from "@angular/material/icon";
 import { MatTabsModule } from "@angular/material/tabs";
-import { MatTooltipModule } from "@angular/material/tooltip";
-import { RouterLink, RouterLinkActive, RouterOutlet } from "@angular/router";
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from "@angular/router";
+import { map } from "rxjs";
 import { AuthService } from "./services/authService";
 import { GroupService } from "./services/groupService";
 
@@ -15,22 +19,35 @@ const plural = (count: number, one: string, many: string) => (count === 1 ? one 
 
 @Component({
   selector: "app-root",
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: "./app.scss",
   templateUrl: "./app.html",
   imports: [
     RouterOutlet,
     RouterLink,
     RouterLinkActive,
-    MatTabsModule,
     MatBadgeModule,
-    MatTooltipModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTabsModule,
   ],
 })
 export class App {
   private authService = inject(AuthService);
   private groupService = inject(GroupService);
+  private router = inject(Router);
 
   protected userToken = this.authService.accessToken;
+  protected signOutLabel = computed(() => {
+    const name = this.groupService.self()?.name;
+    return name ? `Sign out (signed in as ${name})` : "Sign out";
+  });
+  protected isHandset = toSignal(
+    inject(BreakpointObserver)
+      .observe(Breakpoints.XSmall)
+      .pipe(map((state) => state.matches)),
+    { initialValue: false },
+  );
   protected readonly tabs: Tab[] = [
     {
       title: "Home",
@@ -60,4 +77,9 @@ export class App {
       tooltip: reasons.join(" · "),
     };
   });
+
+  protected signOut() {
+    this.authService.logout();
+    this.router.navigate(["/login"]);
+  }
 }

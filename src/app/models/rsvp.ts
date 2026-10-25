@@ -1,15 +1,14 @@
-import { formatCoordinates, parseCoordinates } from "./coordinates";
-import { DietaryOption, Group, GroupGuest, RsvpInput } from "./api";
+import { Coordinates, DietaryOption, Group, GroupGuest, RsvpInput } from "./api";
 
 export type YesNo = "yes" | "no";
 
-// form-friendly version of an RSVP: radio groups bind to strings, the location is free text
+// form-friendly version of an RSVP: the toggle groups bind to strings
 export type RsvpDraft = {
   attending: YesNo | null;
   dietary: DietaryOption | null;
   dietaryOtherDetails: string;
   shuttle: YesNo | "unsure";
-  accommodation: string;
+  accommodation: Coordinates | null;
 };
 
 export type PrefilledField = "shuttle" | "accommodation";
@@ -30,7 +29,7 @@ export const draftFor = (
     dietary: rsvp?.dietary ?? null,
     dietaryOtherDetails: rsvp?.dietaryOtherDetails ?? "",
     shuttle: rsvp?.shuttle == null ? "unsure" : toYesNo(rsvp.shuttle),
-    accommodation: formatCoordinates(rsvp?.accommodation ?? null),
+    accommodation: rsvp?.accommodation ?? null,
   };
   const prefilled: PrefilledField[] = [];
   const source = guest.guestId === self?.guestId ? undefined : self?.rsvp;
@@ -40,7 +39,7 @@ export const draftFor = (
       prefilled.push("shuttle");
     }
     if (!rsvp?.accommodation && source.accommodation) {
-      draft.accommodation = formatCoordinates(source.accommodation);
+      draft.accommodation = source.accommodation;
       prefilled.push("accommodation");
     }
   }
@@ -56,7 +55,7 @@ export const toRsvpInput = (guestId: number, draft: RsvpDraft): RsvpInput => {
     dietaryOtherDetails:
       attending && draft.dietary === "other" ? draft.dietaryOtherDetails.trim() : null,
     shuttle: !attending || draft.shuttle === "unsure" ? null : draft.shuttle === "yes",
-    accommodation: attending ? parseCoordinates(draft.accommodation) : null,
+    accommodation: attending ? draft.accommodation : null,
   };
 };
 
@@ -86,5 +85,5 @@ export const DIETARY_LABELS: Record<DietaryOption, string> = {
   vegetarian: "Vegetarian",
   halaal: "Halaal",
   kosher: "Kosher",
-  other: "Other (tell us more)",
+  other: "Other",
 };
