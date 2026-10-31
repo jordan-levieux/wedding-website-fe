@@ -167,6 +167,28 @@ describe("GuestsPage", () => {
     ).toBeNull();
   });
 
+  it("downloads the guests shown as a CSV", async () => {
+    await setup(["viewer"], "/admin/guests?status=attending");
+    await flushGuests();
+    let blob: Blob | undefined;
+    vi.spyOn(URL, "createObjectURL").mockImplementation((file) => {
+      blob = file as Blob;
+      return "blob:guests";
+    });
+    vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (
+      this: HTMLAnchorElement,
+    ) {
+      expect(this.download).toMatch(/^guests-attending-\d{4}-\d{2}-\d{2}\.csv$/);
+    });
+
+    harness.routeNativeElement!.querySelector<HTMLButtonElement>(".showing button")!.click();
+
+    expect(click).toHaveBeenCalledOnce();
+    const rows = (await blob!.text()).trim().split("\r\n");
+    expect(rows.map((row) => row.split(",")[1])).toEqual(["First name", "Alice", "Bob"]);
+  });
+
   it("explains a failed load and can try again", async () => {
     await setup(["viewer"]);
     http

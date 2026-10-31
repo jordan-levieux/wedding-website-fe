@@ -27,9 +27,11 @@ import {
 } from "../../models/admin";
 import { DIETARY_OPTIONS } from "../../models/api";
 import { mapsLink } from "../../models/coordinates";
+import { guestsCsv } from "../../models/guest-export";
 import { DIETARY_LABELS } from "../../models/rsvp";
 import { AdminService } from "../../services/adminService";
 import { apiErrorMessage } from "../../services/authService";
+import { downloadFile } from "../download";
 import { StatusPill } from "../status-pill/status-pill";
 
 @Component({
@@ -126,6 +128,17 @@ export class GuestsPage {
       copied ? `Invite link for ${guest.name} copied` : "Couldn't copy the link",
       undefined,
       { duration: 3000 },
+    );
+  }
+
+  // what's on screen, so a filter like Attending gives the caterer's list
+  protected downloadCsv() {
+    const filter = this.filter() === "all" ? "" : `-${this.filter()}`;
+    const today = new Date().toLocaleDateString("en-CA");
+    downloadFile(
+      `guests${filter}-${today}.csv`,
+      guestsCsv(this.shown(), this.all()),
+      "text/csv;charset=utf-8",
     );
   }
 

@@ -130,6 +130,14 @@
   width: 100%;
 }
 
+.showing {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  justify-content: space-between;
+}
+
 .group {
   display: grid;
   padding: 0.25rem 1.25rem;

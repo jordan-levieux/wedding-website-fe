@@ -112,7 +112,18 @@
       </mat-chip-listbox>
     </div>
 
-    <p class="muted" role="status">Showing {{ shown().length }} of {{ totals.invited }} guests</p>
+    <div class="showing">
+      <p class="muted" role="status">Showing {{ shown().length }} of {{ totals.invited }} guests</p>
+      <button
+        mat-stroked-button
+        type="button"
+        [disabled]="!shown().length"
+        [attr.aria-label]="'Download CSV of the ' + shown().length + ' guests shown'"
+        (click)="downloadCsv()"
+      >
+        <mat-icon>download</mat-icon> Download CSV
+      </button>
+    </div>
 
     @for (group of groups(); track group.groupId) {
       <mat-card appearance="outlined" class="group">

@@ -14,6 +14,7 @@ export class AdminLayout {
   protected canEdit = inject(AdminService).canEdit;
   protected readonly sections = [
     { title: "Guests", route: "guests", icon: "group" },
+    { title: "Map", route: "map", icon: "map" },
     { title: "RSVP changes", route: "changes", icon: "history" },
   ];
 }

@@ -25,9 +25,9 @@
     <p class="muted">
       @if (groupMates().length) {
         In a group with
-        @for (mate of groupMates(); track mate.guestId; let last = $last, first = $first) {
-          {{ first ? "" : last ? " & " : ", "
-          }}<a [routerLink]="['/admin/guests', mate.guestId]">{{ mate.name }} {{ mate.surname }}</a>
+        @for (mate of groupMates(); track mate.guestId) {
+          <a [routerLink]="['/admin/guests', mate.guestId]">{{ mate.name }} {{ mate.surname }}</a
+          >{{ $last ? "" : $index === $count - 2 ? " &" : "," }}
         }
       } @else {
         On their own in their group

@@ -1,0 +1,160 @@
+<header class="intro">
+  <h1>Where guests are staying</h1>
+  @if (guests.hasValue()) {
+    <p class="muted">
+      {{ pinned() }} of the {{ attending() }} guests who are coming have pinned where they're
+      staying.
+    </p>
+  }
+</header>
+
+@if (guests.error() && !guests.hasValue()) {
+  <div class="problem" role="alert">
+    <mat-icon>cloud_off</mat-icon>
+    <p>{{ errorMessage() }}</p>
+    <button mat-stroked-button type="button" (click)="guests.reload()">Try again</button>
+  </div>
+} @else if (!guests.hasValue()) {
+  <div class="loading" role="status">
+    <mat-spinner diameter="32" />
+    <span class="muted">Loading guests…</span>
+  </div>
+} @else {
+  <div class="layout">
+    <div #mapArea class="map-area">
+      @if (!mapsAvailable) {
+        <p class="map-message muted">The map isn't available right now.</p>
+      } @else {
+        @switch (mapStatus()) {
+          @case ("loading") {
+            <div class="map map-message" role="status">
+              <mat-spinner diameter="28" />
+              <span>Loading the map…</span>
+            </div>
+          }
+          @case ("error") {
+            <p class="map-message problem" role="alert">The map couldn't load right now.</p>
+          }
+          @case ("ready") {
+            <div class="map">
+              <google-map
+                width="100%"
+                height="100%"
+                [center]="venue"
+                [zoom]="11"
+                [options]="mapOptions"
+                (mapInitialized)="fitAll()"
+                (authFailure)="onAuthFailure()"
+              >
+                <map-advanced-marker [position]="venue" [content]="venuePin()" title="The venue" />
+                @for (place of places(); track place.key) {
+                  <map-advanced-marker
+                    #placeMarker
+                    [position]="place.position"
+                    [content]="pins().get(place.key)!"
+                    [title]="placeTitle(place)"
+                    [gmpClickable]="true"
+                    (mapClick)="show(place)"
+                  />
+                }
+                <map-info-window (closeclick)="selectedKey.set(null)">
+                  @if (selected(); as place) {
+                    <div class="info">
+                      <p class="info-title">
+                        {{ formatDistance(place.distanceKm) }} from the venue
+                      </p>
+                      <ul class="names">
+                        @for (guest of place.guests; track guest.guestId) {
+                          <li>
+                            <a [routerLink]="['/admin/guests', guest.guestId]"
+                              >{{ guest.name }} {{ guest.surname }}</a
+                            >
+                          </li>
+                        }
+                      </ul>
+                      <a [href]="mapsLink(place.position)" target="_blank" rel="noopener">
+                        Open in Google Maps
+                      </a>
+                    </div>
+                  }
+                </map-info-window>
+              </google-map>
+            </div>
+          }
+        }
+      }
+    </div>
+
+    <div class="lists">
+      <mat-card appearance="outlined" class="list">
+        <h2>Places</h2>
+        @if (places().length) {
+          <p class="muted caption">Nearest the venue first, as the crow flies.</p>
+          <ol class="rows">
+            @for (place of places(); track place.key) {
+              <li class="place" [class.selected]="selectedKey() === place.key">
+                <span class="count" aria-hidden="true">{{ place.guests.length }}</span>
+                <div class="place-body">
+                  <p class="names-inline">
+                    @for (guest of place.guests; track guest.guestId) {
+                      <a [routerLink]="['/admin/guests', guest.guestId]"
+                        >{{ guest.name }} {{ guest.surname }}</a
+                      >{{ $last ? "" : "," }}
+                    }
+                  </p>
+                  <p class="muted meta">
+                    {{ formatDistance(place.distanceKm) }} from the venue
+                    @if (onShuttle(place); as shuttle) {
+                      · {{ shuttle }} on the shuttle
+                    }
+                  </p>
+                </div>
+                <div class="place-actions">
+                  @if (mapStatus() === "ready") {
+                    <button
+                      mat-icon-button
+                      type="button"
+                      aria-label="Show on the map"
+                      title="Show on the map"
+                      (click)="show(place)"
+                    >
+                      <mat-icon>my_location</mat-icon>
+                    </button>
+                  }
+                  <a
+                    mat-icon-button
+                    [href]="mapsLink(place.position)"
+                    target="_blank"
+                    rel="noopener"
+                    aria-label="Open in Google Maps"
+                    title="Open in Google Maps"
+                  >
+                    <mat-icon>open_in_new</mat-icon>
+                  </a>
+                </div>
+              </li>
+            }
+          </ol>
+        } @else {
+          <p class="muted empty">No one has pinned where they're staying yet.</p>
+        }
+      </mat-card>
+
+      @if (unpinned().length) {
+        <mat-card appearance="outlined" class="list">
+          <h2>Not pinned yet</h2>
+          <p class="muted caption">Coming, but haven't said where they're staying.</p>
+          <ul class="rows">
+            @for (guest of unpinned(); track guest.guestId) {
+              <li class="unpinned">
+                <a [routerLink]="['/admin/guests', guest.guestId]"
+                  >{{ guest.name }} {{ guest.surname }}</a
+                >
+              </li>
+            }
+          </ul>
+        </mat-card>
+      }
+    </div>
+  </div>
+}

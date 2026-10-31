@@ -20,6 +20,10 @@ export const adminRoutes: Routes = [
         loadComponent: () => import("./guest-page/guest-page").then((m) => m.GuestPage),
       },
       {
+        path: "map",
+        loadComponent: () => import("./map-page/map-page").then((m) => m.MapPage),
+      },
+      {
         path: "changes",
         loadComponent: () => import("./changes-page/changes-page").then((m) => m.ChangesPage),
       },
