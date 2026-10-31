@@ -1,0 +1,226 @@
+<a mat-button routerLink="/admin/guests" class="back"><mat-icon>arrow_back</mat-icon> All guests</a>
+
+@if (!guests.hasValue()) {
+  @if (guests.error()) {
+    <div class="problem" role="alert">
+      <mat-icon>cloud_off</mat-icon>
+      <p>We couldn't load this guest</p>
+      <button mat-stroked-button type="button" (click)="guests.reload()">Try again</button>
+    </div>
+  } @else {
+    <div class="loading" role="status">
+      <mat-spinner diameter="32" />
+      <span class="muted">Loading…</span>
+    </div>
+  }
+} @else if (guest(); as guest) {
+  <header class="intro">
+    <h1>{{ guest.name }} {{ guest.surname }}</h1>
+    <div class="tags">
+      <app-status-pill [status]="adminStatus(guest)" />
+      @for (role of guest.roles; track role) {
+        <span class="role">{{ roleLabels[role] }}</span>
+      }
+    </div>
+    <p class="muted">
+      @if (groupMates().length) {
+        In a group with
+        @for (mate of groupMates(); track mate.guestId; let last = $last, first = $first) {
+          {{ first ? "" : last ? " & " : ", "
+          }}<a [routerLink]="['/admin/guests', mate.guestId]">{{ mate.name }} {{ mate.surname }}</a>
+        }
+      } @else {
+        On their own in their group
+      }
+    </p>
+  </header>
+
+  <div class="columns">
+    <div class="column">
+      <mat-card appearance="outlined" class="card rsvp">
+        <h2>RSVP</h2>
+        @if (editingRsvp() && rsvpGuest(); as rsvpGuest) {
+          <app-rsvp-form
+            [guest]="rsvpGuest"
+            [draft]="rsvpDraft()!"
+            [venueAccommodation]="venueAccommodation()"
+            [saving]="savingRsvp()"
+            (save)="saveRsvp($event)"
+          />
+          <button mat-button type="button" class="cancel" (click)="editingRsvp.set(false)">
+            Cancel
+          </button>
+        } @else {
+          @if (guest.rsvp; as rsvp) {
+            <dl class="facts">
+              <dt>Coming</dt>
+              <dd>{{ rsvp.attending ? "Yes" : "No" }}</dd>
+              @if (rsvp.attending) {
+                <dt>Dietary</dt>
+                <dd>
+                  {{ dietaryLabels[rsvp.dietary!] }}
+                  @if (rsvp.dietaryOtherDetails) {
+                    <span class="muted">· {{ rsvp.dietaryOtherDetails }}</span>
+                  }
+                </dd>
+                <dt>Shuttle</dt>
+                <dd [class.missing]="rsvp.shuttle === null">
+                  {{ rsvp.shuttle === null ? "Not sure" : rsvp.shuttle ? "Yes" : "No" }}
+                </dd>
+                <dt>Staying</dt>
+                <dd [class.missing]="!rsvp.accommodation">
+                  @if (rsvp.accommodation; as location) {
+                    <a [href]="mapsLink(location)" target="_blank" rel="noopener">On the map</a>
+                  } @else {
+                    No answer
+                  }
+                </dd>
+              }
+            </dl>
+            <p class="meta muted">
+              Answered by {{ nameOf(rsvp.respondedBy) }} on
+              {{ rsvp.respondedAt | date: "d MMM y, HH:mm" }}
+            </p>
+          } @else {
+            <p class="muted">No answer yet.</p>
+          }
+          @if (canEdit()) {
+            <div class="actions">
+              <button mat-stroked-button type="button" (click)="editingRsvp.set(true)">
+                <mat-icon>edit</mat-icon>
+                {{ guest.rsvp ? "Change RSVP" : "Answer for " + guest.name }}
+              </button>
+            </div>
+          }
+        }
+      </mat-card>
+
+      <mat-card appearance="outlined" class="card history">
+        <h2>History</h2>
+        @if (history.error()) {
+          <div class="problem" role="alert">
+            <p>{{ historyError() }}</p>
+            <button mat-stroked-button type="button" (click)="history.reload()">Try again</button>
+          </div>
+        } @else if (!history.hasValue()) {
+          <mat-spinner diameter="24" />
+        } @else {
+          <ol class="timeline">
+            @for (entry of timeline(); track $index) {
+              <li>
+                <mat-icon>{{ entry.icon }}</mat-icon>
+                <div class="entry">
+                  <p class="entry-title">{{ entry.title }}</p>
+                  @if (entry.detail) {
+                    <p class="entry-detail">{{ entry.detail }}</p>
+                  }
+                  <p class="entry-meta muted">
+                    {{ entry.at | date: "d MMM y, HH:mm" }}
+                    @if (entry.by) {
+                      · by {{ entry.by }}
+                    }
+                  </p>
+                </div>
+              </li>
+            }
+          </ol>
+        }
+      </mat-card>
+    </div>
+
+    <div class="column">
+      <mat-card appearance="outlined" class="card account">
+        <h2>Sign-in</h2>
+        @if (guest.signedUpAt) {
+          <p>
+            Signed in with Google{{ guest.email ? " as " : "" }}<strong>{{ guest.email }}</strong>
+          </p>
+          <p class="meta muted">
+            @if (guest.tokenName) {
+              Google name: {{ guest.tokenName }} ·
+            }
+            Since {{ guest.signedUpAt | date: "d MMM y" }}
+          </p>
+          @if (canEdit()) {
+            @if (confirming() === "unlink") {
+              <div class="confirm" role="alert">
+                <p>
+                  Unlink {{ guest.name }}'s Google account? They won't be able to sign in until they
+                  use their invite link again, which will then work for any Google account.
+                </p>
+                <div class="actions">
+                  <button mat-button type="button" (click)="confirming.set(null)">Cancel</button>
+                  <button
+                    mat-flat-button
+                    type="button"
+                    [disabled]="busy()"
+                    (click)="unlinkGoogle()"
+                  >
+                    Unlink
+                  </button>
+                </div>
+              </div>
+            } @else {
+              <div class="actions">
+                <button mat-stroked-button type="button" (click)="confirming.set('unlink')">
+                  <mat-icon>link_off</mat-icon> Unlink Google account
+                </button>
+              </div>
+            }
+          }
+        } @else {
+          <p>Hasn't signed up yet.</p>
+          @if (canEdit() && guest.signUpUuid) {
+            <app-invite-link [signUpUuid]="guest.signUpUuid" [name]="guest.name" />
+            @if (confirming() === "regenerate") {
+              <div class="confirm" role="alert">
+                <p>
+                  Make a new invite link? The link you have for {{ guest.name }} now will stop
+                  working.
+                </p>
+                <div class="actions">
+                  <button mat-button type="button" (click)="confirming.set(null)">Cancel</button>
+                  <button
+                    mat-flat-button
+                    type="button"
+                    [disabled]="busy()"
+                    (click)="regenerateInvite()"
+                  >
+                    Make a new link
+                  </button>
+                </div>
+              </div>
+            } @else {
+              <div class="actions">
+                <button mat-button type="button" (click)="confirming.set('regenerate')">
+                  <mat-icon>autorenew</mat-icon> Make a new link
+                </button>
+              </div>
+            }
+          } @else if (!canEdit()) {
+            <p class="meta muted">Only admins can see invite links.</p>
+          }
+        }
+      </mat-card>
+
+      @if (canEdit()) {
+        <mat-card appearance="outlined" class="card details">
+          <h2>Details</h2>
+          <form (submit)="saveDetails($event)" novalidate>
+            <app-guest-fields [fields]="detailsForm" [groups]="groups()" />
+            <div class="actions">
+              @if (detailsChanged()) {
+                <button mat-button type="button" (click)="resetDetails()">Undo changes</button>
+              }
+              <button mat-flat-button type="submit" [disabled]="!detailsChanged() || busy()">
+                Save details
+              </button>
+            </div>
+          </form>
+        </mat-card>
+      }
+    </div>
+  </div>
+} @else {
+  <p class="problem">We couldn't find that guest.</p>
+}

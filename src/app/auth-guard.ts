@@ -21,6 +21,10 @@ export const authGuard: CanActivateFn = (_route, _state) => {
   );
 };
 
+// a convenience only: the API checks the role on every admin request
+export const adminGuard: CanActivateFn = () =>
+  inject(GroupService).canSeeAdmin() || inject(Router).createUrlTree(["/home"]);
+
 // the landing page: straight to the RSVP until the guest has answered for themselves
 export const landingGuard: CanActivateFn = () => {
   const groupService = inject(GroupService);

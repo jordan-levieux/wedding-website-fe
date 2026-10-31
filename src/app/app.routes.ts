@@ -1,5 +1,5 @@
 import { Routes } from "@angular/router";
-import { authGuard, landingGuard } from "./auth-guard";
+import { adminGuard, authGuard, landingGuard } from "./auth-guard";
 
 export const routes: Routes = [
   {
@@ -23,6 +23,11 @@ export const routes: Routes = [
       {
         path: "rsvp",
         loadComponent: () => import("./rsvp-page/rsvp-page").then((m) => m.RsvpPage),
+      },
+      {
+        path: "admin",
+        canActivate: [adminGuard],
+        loadChildren: () => import("./admin/admin.routes").then((m) => m.adminRoutes),
       },
       {
         path: "**",

@@ -11,7 +11,7 @@
         [mat-stretch-tabs]="isHandset()"
         mat-align-tabs="center"
       >
-        @for (tab of tabs; track tab.route) {
+        @for (tab of tabs(); track tab.route) {
           <a
             mat-tab-link
             [routerLink]="tab.route"

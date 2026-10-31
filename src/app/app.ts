@@ -48,7 +48,7 @@ export class App {
       .pipe(map((state) => state.matches)),
     { initialValue: false },
   );
-  protected readonly tabs: Tab[] = [
+  protected tabs = computed<Tab[]>(() => [
     {
       title: "Home",
       route: "/home",
@@ -57,7 +57,8 @@ export class App {
       title: "RSVP",
       route: "/rsvp",
     },
-  ];
+    ...(this.groupService.canSeeAdmin() ? [{ title: "Admin", route: "/admin" }] : []),
+  ]);
 
   // red for people who haven't answered at all, a softer reminder for missing shuttle/accommodation answers
   protected rsvpBadge = computed(() => {

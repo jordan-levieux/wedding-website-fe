@@ -1,0 +1,29 @@
+:host {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  font: var(--mat-sys-label-medium);
+  gap: 0.25rem;
+  padding: 0.25rem 0.625rem 0.25rem 0.375rem;
+}
+
+mat-icon {
+  font-size: 1rem;
+  height: 1rem;
+  width: 1rem;
+}
+
+:host(.attending) {
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+
+:host(.declined) {
+  background: var(--mat-sys-surface-container-highest);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+:host(.awaiting) {
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+}

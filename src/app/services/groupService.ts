@@ -21,6 +21,9 @@ export class GroupService {
     return !!group && Date.now() <= Date.parse(group.rsvpDeadline);
   });
   public attention = computed(() => rsvpAttention(this.group()));
+  public canSeeAdmin = computed(
+    () => this.group()?.roles.some((role) => role === "admin" || role === "viewer") ?? false,
+  );
 
   load = () =>
     firstValueFrom(this.http.get<Group>(`${environment.apiUrl}/group`)).then((group) => {

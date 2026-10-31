@@ -1,0 +1,66 @@
+<header class="intro">
+  <h1>RSVP changes</h1>
+  <p class="muted">Every time someone changed an answer they had already given, newest first.</p>
+</header>
+
+@if (changes.error()) {
+  <div class="problem" role="alert">
+    <mat-icon>cloud_off</mat-icon>
+    <p>{{ errorMessage() }}</p>
+    <button mat-stroked-button type="button" (click)="changes.reload()">Try again</button>
+  </div>
+} @else if (!changes.hasValue()) {
+  <div class="loading" role="status">
+    <mat-spinner diameter="32" />
+    <span class="muted">Loading changes…</span>
+  </div>
+} @else {
+  <mat-chip-listbox
+    multiple
+    aria-label="Filter changes"
+    [value]="filters()"
+    (change)="setFilters($event.value)"
+  >
+    @for (option of filterOptions; track option[0]) {
+      <mat-chip-option [value]="option[0]">{{ option[1] }}</mat-chip-option>
+    }
+  </mat-chip-listbox>
+
+  @if (shown().length) {
+    <mat-card appearance="outlined" class="list">
+      <ul class="rows">
+        @for (change of shown(); track change.historyId) {
+          <li class="row">
+            <p class="when muted">{{ change.recordedAt | date: "d MMM y, HH:mm" }}</p>
+            <div class="what">
+              <a class="guest" [routerLink]="['/admin/guests', change.guestId]">{{
+                change.guest
+              }}</a>
+              @if (change.wasAttending !== change.nowAttending) {
+                <p class="attendance" [class.declined]="!change.nowAttending">
+                  <mat-icon>{{ change.nowAttending ? "check_circle" : "cancel" }}</mat-icon>
+                  {{ change.nowAttending ? "Now coming" : "No longer coming" }}
+                </p>
+              }
+              <p class="fields">
+                @for (field of changedFieldLabels(change); track field) {
+                  <span class="field">{{ field }}</span>
+                }
+              </p>
+            </div>
+            <p class="who">
+              by {{ change.changedBy }}
+              @if (changedBySomeoneElse(change)) {
+                <span class="muted">· first answered by {{ change.previousAnswerBy }}</span>
+              }
+            </p>
+          </li>
+        }
+      </ul>
+    </mat-card>
+  } @else {
+    <p class="empty muted">
+      {{ filters().length ? "No changes match." : "No one has changed their RSVP yet." }}
+    </p>
+  }
+}

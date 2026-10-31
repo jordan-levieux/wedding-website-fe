@@ -1,0 +1,214 @@
+<header class="intro">
+  <h1>Guests</h1>
+  @if (canEdit()) {
+    <a mat-flat-button routerLink="new"><mat-icon>person_add</mat-icon> Add guest</a>
+  }
+</header>
+
+@if (guests.error()) {
+  <div class="problem" role="alert">
+    <mat-icon>cloud_off</mat-icon>
+    <p>{{ errorMessage() }}</p>
+    <button mat-stroked-button type="button" (click)="guests.reload()">Try again</button>
+  </div>
+} @else if (!guests.hasValue()) {
+  <div class="loading" role="status">
+    <mat-spinner diameter="32" />
+    <span class="muted">Loading guests…</span>
+  </div>
+} @else {
+  @let totals = summary();
+
+  <section class="overview" aria-label="Summary">
+    <mat-card appearance="outlined" class="hero">
+      <p class="label">Attending</p>
+      <p class="hero-value">{{ totals.attending }}</p>
+      <p class="muted">{{ totals.answered }} of {{ totals.invited }} guests have answered</p>
+      <mat-progress-bar
+        mode="determinate"
+        [value]="totals.invited ? (totals.answered / totals.invited) * 100 : 0"
+        aria-label="Guests who have answered"
+      />
+    </mat-card>
+
+    <div class="tiles">
+      <div class="tile">
+        <p class="label">Awaiting</p>
+        <p class="value">{{ totals.awaiting }}</p>
+      </div>
+      <div class="tile">
+        <p class="label">Declined</p>
+        <p class="value">{{ totals.declined }}</p>
+      </div>
+      <div class="tile">
+        <p class="label">Signed up</p>
+        <p class="value">{{ totals.signedUp }}</p>
+      </div>
+      <div class="tile">
+        <p class="label">Missing details</p>
+        <p class="value">{{ totals.missingDetails }}</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="breakdown" aria-label="Of the guests who are coming">
+    <div class="breakdown-cards">
+      <mat-card appearance="outlined" class="counts">
+        <h2>Dietary</h2>
+        <dl>
+          @for (option of dietaryOptions; track option) {
+            <dt>{{ dietaryLabels[option] }}</dt>
+            <dd>{{ totals.dietary[option] }}</dd>
+          }
+        </dl>
+      </mat-card>
+      <mat-card appearance="outlined" class="counts">
+        <h2>Shuttle</h2>
+        <dl>
+          <dt>Yes</dt>
+          <dd>{{ totals.shuttle.yes }}</dd>
+          <dt>No</dt>
+          <dd>{{ totals.shuttle.no }}</dd>
+          <dt>No answer</dt>
+          <dd>{{ totals.shuttle.unanswered }}</dd>
+        </dl>
+      </mat-card>
+      <mat-card appearance="outlined" class="counts">
+        <h2>Staying</h2>
+        <dl>
+          <dt>Location pinned</dt>
+          <dd>{{ totals.staying.pinned }}</dd>
+          <dt>No answer</dt>
+          <dd>{{ totals.staying.unanswered }}</dd>
+        </dl>
+      </mat-card>
+    </div>
+    <p class="muted caption">Counted over the {{ totals.attending }} guests who are coming.</p>
+  </section>
+
+  <section class="list" aria-label="Guest list">
+    <div class="toolbar">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="search">
+        <mat-icon matPrefix>search</mat-icon>
+        <mat-label>Search by name or email</mat-label>
+        <input
+          matInput
+          type="search"
+          [value]="search()"
+          (input)="setSearch($any($event.target).value)"
+        />
+      </mat-form-field>
+      <mat-chip-listbox
+        aria-label="Filter guests"
+        [value]="filter()"
+        (change)="setFilter($event.value)"
+        class="filters"
+      >
+        @for (option of filters; track option) {
+          <mat-chip-option [value]="option">
+            {{ filterLabels[option] }} · {{ filterCounts()[option] }}
+          </mat-chip-option>
+        }
+      </mat-chip-listbox>
+    </div>
+
+    <p class="muted" role="status">Showing {{ shown().length }} of {{ totals.invited }} guests</p>
+
+    @for (group of groups(); track group.groupId) {
+      <mat-card appearance="outlined" class="group">
+        <div class="group-header">
+          <h2 class="group-label">{{ group.label }}</h2>
+          @if (canEdit()) {
+            <a
+              mat-icon-button
+              routerLink="new"
+              [queryParams]="{ group: group.groupId }"
+              [attr.aria-label]="'Add a guest to ' + group.label"
+              [title]="'Add a guest to ' + group.label"
+            >
+              <mat-icon>person_add</mat-icon>
+            </a>
+          }
+        </div>
+        <ul class="rows">
+          @for (guest of group.guests; track guest.guestId) {
+            <li class="row">
+              <div class="who">
+                <p class="name">
+                  <a [routerLink]="[guest.guestId]">{{ guest.name }} {{ guest.surname }}</a>
+                  @for (role of guest.roles; track role) {
+                    <span class="role">{{ roleLabels[role] }}</span>
+                  }
+                </p>
+                <p class="account muted">
+                  @if (guest.signedUpAt) {
+                    Signed up{{ guest.email ? " as " + guest.email : "" }}
+                  } @else {
+                    Not signed up
+                  }
+                </p>
+              </div>
+
+              <div class="state">
+                <app-status-pill [status]="adminStatus(guest)" />
+                @if (answeredBySomeoneElse(guest); as by) {
+                  <span class="by muted">by {{ by }}</span>
+                }
+              </div>
+
+              @if (guest.rsvp?.attending) {
+                @let rsvp = guest.rsvp!;
+                <dl class="details">
+                  <div>
+                    <dt>Dietary</dt>
+                    <dd>
+                      {{
+                        rsvp.dietary === "other"
+                          ? rsvp.dietaryOtherDetails
+                          : dietaryLabels[rsvp.dietary!]
+                      }}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Shuttle</dt>
+                    <dd [class.missing]="rsvp.shuttle === null">
+                      {{ rsvp.shuttle === null ? "No answer" : rsvp.shuttle ? "Yes" : "No" }}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Staying</dt>
+                    <dd [class.missing]="!rsvp.accommodation">
+                      @if (rsvp.accommodation; as location) {
+                        <a [href]="mapsLink(location)" target="_blank" rel="noopener">On the map</a>
+                      } @else {
+                        No answer
+                      }
+                    </dd>
+                  </div>
+                </dl>
+              } @else {
+                <div class="details"></div>
+              }
+
+              <div class="actions">
+                @if (canEdit() && guest.signUpUuid && !guest.signedUpAt) {
+                  <button
+                    mat-icon-button
+                    type="button"
+                    [attr.aria-label]="'Copy invite link for ' + guest.name"
+                    [title]="'Copy invite link for ' + guest.name"
+                    (click)="copyInvite(guest)"
+                  >
+                    <mat-icon>link</mat-icon>
+                  </button>
+                }
+              </div>
+            </li>
+          }
+        </ul>
+      </mat-card>
+    } @empty {
+      <p class="empty muted">No guests match.</p>
+    }
+  </section>
+}

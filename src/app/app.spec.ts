@@ -5,8 +5,12 @@ import { App } from "./app";
 import { AuthService } from "./services/authService";
 import { GroupService } from "./services/groupService";
 
-describe("App RSVP tab indicator", () => {
-  const render = async (attention: { unanswered: number; incomplete: number }, rsvpOpen = true) => {
+describe("App tabs", () => {
+  const render = async (
+    attention: { unanswered: number; incomplete: number },
+    rsvpOpen = true,
+    canSeeAdmin = false,
+  ) => {
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
@@ -16,6 +20,7 @@ describe("App RSVP tab indicator", () => {
           useValue: {
             attention: signal(attention),
             rsvpOpen: signal(rsvpOpen),
+            canSeeAdmin: signal(canSeeAdmin),
             self: signal({ guestId: 1, name: "Alice", surname: "Smith", rsvp: null }),
           },
         },
@@ -45,5 +50,17 @@ describe("App RSVP tab indicator", () => {
     expect(
       (await render({ unanswered: 2, incomplete: 0 }, false)).querySelector(".mat-badge-content"),
     ).toBeNull();
+  });
+
+  it("shows the admin tab only to admins and viewers", async () => {
+    const tabs = (element: HTMLElement) =>
+      [...element.querySelectorAll("[mat-tab-link]")].map((tab) => tab.textContent?.trim());
+    expect(tabs(await render({ unanswered: 0, incomplete: 0 }))).toEqual(["Home", "RSVP"]);
+    TestBed.resetTestingModule();
+    expect(tabs(await render({ unanswered: 0, incomplete: 0 }, true, true))).toEqual([
+      "Home",
+      "RSVP",
+      "Admin",
+    ]);
   });
 });

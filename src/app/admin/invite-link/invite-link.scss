@@ -1,0 +1,16 @@
+:host {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.link {
+  background: var(--mat-sys-surface-container);
+  border-radius: 8px;
+  flex: 1 1 16rem;
+  font: var(--mat-sys-body-small);
+  min-width: 0;
+  overflow-wrap: anywhere;
+  padding: 0.5rem 0.75rem;
+}

@@ -1,0 +1,43 @@
+:host {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 40rem;
+}
+
+.back {
+  justify-self: start;
+}
+
+.intro {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.card {
+  padding: 1.25rem;
+
+  form {
+    display: grid;
+    gap: 1rem;
+  }
+}
+
+.error,
+.problem {
+  color: var(--mat-sys-error);
+}
+
+.problem {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: end;
+}

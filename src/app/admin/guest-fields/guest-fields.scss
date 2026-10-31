@@ -1,0 +1,46 @@
+:host {
+  display: grid;
+  gap: 1rem;
+}
+
+.names {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+}
+
+.field {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.error {
+  color: var(--mat-sys-error);
+  font: var(--mat-sys-body-small);
+  padding-inline: 1rem;
+}
+
+.roles {
+  border: 0;
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+
+  legend {
+    font: var(--mat-sys-title-small);
+    margin-bottom: 0.25rem;
+    padding: 0;
+  }
+}
+
+.role {
+  display: grid;
+}
+
+// lines the hint up with the checkbox label
+.hint {
+  font: var(--mat-sys-body-small);
+  margin-top: -0.5rem;
+  padding-inline-start: 2.5rem;
+}

@@ -1,0 +1,32 @@
+<a mat-button routerLink="/admin/guests" class="back"><mat-icon>arrow_back</mat-icon> All guests</a>
+
+<header class="intro">
+  <h1>Add a guest</h1>
+  <p class="muted">You'll get an invite link to send them once they're added.</p>
+</header>
+
+<!-- the group options come from the guest list, so the form waits for it -->
+@if (guests.error() && !guests.hasValue()) {
+  <div class="problem" role="alert">
+    <p>We couldn't load the guest list</p>
+    <button mat-stroked-button type="button" (click)="guests.reload()">Try again</button>
+  </div>
+} @else if (!guests.hasValue()) {
+  <mat-spinner diameter="32" />
+} @else {
+  <mat-card appearance="outlined" class="card">
+    <form (submit)="onSubmit($event)" novalidate>
+      <app-guest-fields [fields]="guestForm" [groups]="groups()" />
+      @if (error(); as error) {
+        <p class="error" role="alert">{{ error }}</p>
+      }
+      <div class="actions">
+        <a mat-button routerLink="/admin/guests">Cancel</a>
+        <button mat-flat-button type="submit" [disabled]="saving()">
+          <mat-icon>{{ saving() ? "hourglass_top" : "person_add" }}</mat-icon>
+          {{ saving() ? "Adding…" : "Add guest" }}
+        </button>
+      </div>
+    </form>
+  </mat-card>
+}

@@ -5,17 +5,17 @@ import { TestBed } from "@angular/core/testing";
 import { provideRouter, Router } from "@angular/router";
 import { RouterTestingHarness } from "@angular/router/testing";
 import { environment } from "../environments/environment";
-import { authGuard, landingGuard } from "./auth-guard";
-import { Group } from "./models/api";
+import { adminGuard, authGuard, landingGuard } from "./auth-guard";
+import { Group, Role } from "./models/api";
 import { AuthService } from "./services/authService";
 import { GroupService } from "./services/groupService";
 
 @Component({ template: "" })
 class Blank {}
 
-const group = (answered: boolean): Group => ({
+const group = (answered: boolean, roles: Role[] = []): Group => ({
   selfId: 1,
-  roles: [],
+  roles,
   rsvpDeadline: "2099-01-01T00:00:00.000Z",
   guests: [
     {
@@ -55,6 +55,7 @@ describe("guards", () => {
               { path: "", pathMatch: "full", canActivate: [landingGuard], children: [] },
               { path: "home", component: Blank },
               { path: "rsvp", component: Blank },
+              { path: "admin", canActivate: [adminGuard], component: Blank },
             ],
           },
         ]),
@@ -98,5 +99,22 @@ describe("guards", () => {
       .flush({ error: "invalid token" }, { status: 401, statusText: "" });
     await navigation;
     expect(url()).toBe("/login");
+  });
+
+  it("lets admins and viewers into the admin pages, and sends everyone else home", async () => {
+    setup("token");
+    const groupService = TestBed.inject(GroupService);
+    const harness = await RouterTestingHarness.create();
+    for (const [roles, expected] of [
+      [["admin"], "/admin"],
+      [["viewer"], "/admin"],
+      [["venue_accommodation"], "/home"],
+      [[], "/home"],
+    ] as [Role[], string][]) {
+      groupService.setGroup(group(true, roles));
+      await harness.navigateByUrl("/rsvp");
+      await harness.navigateByUrl("/admin");
+      expect(url(), roles.join()).toBe(expected);
+    }
   });
 });

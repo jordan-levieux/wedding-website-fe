@@ -1,0 +1,19 @@
+<div class="page wide">
+  <header class="header">
+    <p class="eyebrow">Admin</p>
+    @if (!canEdit()) {
+      <p class="read-only"><mat-icon>visibility</mat-icon> View only</p>
+    }
+  </header>
+  @if (sections.length > 1) {
+    <nav class="sections" aria-label="Admin sections">
+      @for (section of sections; track section.route) {
+        <a [routerLink]="section.route" routerLinkActive="active" ariaCurrentWhenActive="page">
+          <mat-icon>{{ section.icon }}</mat-icon>
+          {{ section.title }}
+        </a>
+      }
+    </nav>
+  }
+  <router-outlet />
+</div>
