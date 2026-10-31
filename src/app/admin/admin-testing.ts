@@ -15,7 +15,6 @@ export const COMING: Rsvp = {
   dietary: "vegetarian",
   dietaryOtherDetails: null,
   shuttle: true,
-  accommodation: { lat: -33.9, lng: 22.6 },
   respondedBy: 1,
   respondedAt: "2026-10-24T10:00:00.000Z",
 };
@@ -32,6 +31,8 @@ export const adminGuest = (overrides: Partial<AdminGuest>): AdminGuest => ({
   updatedBy: null,
   roles: [],
   rsvp: null,
+  groupAccommodation: null,
+  ownAccommodation: null,
   ...overrides,
 });
 
@@ -48,6 +49,7 @@ export const setupAdminPage = async (roles: Role[], routes: Routes, url: string)
     selfId: 1,
     roles,
     rsvpDeadline: "2099-01-01T00:00:00.000Z",
+    accommodation: null,
     guests: [],
   });
   const harness = await RouterTestingHarness.create();

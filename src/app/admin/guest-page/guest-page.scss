@@ -50,16 +50,20 @@
   order: 1;
 }
 
-.account {
+.staying {
   order: 2;
 }
 
-.details {
+.account {
   order: 3;
 }
 
-.history {
+.details {
   order: 4;
+}
+
+.history {
+  order: 5;
 }
 
 .card {
@@ -100,6 +104,15 @@
 
 .meta {
   font: var(--mat-sys-body-small);
+}
+
+.place {
+  display: grid;
+  gap: 0.5rem;
+
+  h3 {
+    font: var(--mat-sys-title-small);
+  }
 }
 
 .actions {

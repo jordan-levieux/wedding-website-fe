@@ -6,18 +6,16 @@ import { MatChipsModule } from "@angular/material/chips";
 import { MatIconModule } from "@angular/material/icon";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
-import { changedFieldLabels, RsvpChange } from "../../models/admin";
+import { changeLog } from "../../models/admin";
 import { AdminService } from "../../services/adminService";
 import { apiErrorMessage } from "../../services/authService";
 
 const CHANGE_FILTERS = {
+  changes: "Changes only",
   attendance: "Attendance changed",
   others: "Changed by someone else",
 } as const;
 type ChangeFilter = keyof typeof CHANGE_FILTERS;
-
-export const changedBySomeoneElse = (change: RsvpChange) =>
-  change.changedBy !== change.previousAnswerBy;
 
 @Component({
   selector: "app-changes-page",
@@ -36,6 +34,7 @@ export const changedBySomeoneElse = (change: RsvpChange) =>
 })
 export class ChangesPage {
   // query params, like the guest list's filters
+  changes = input<string>();
   attendance = input<string>();
   others = input<string>();
 
@@ -44,34 +43,51 @@ export class ChangesPage {
   private route = inject(ActivatedRoute);
 
   protected readonly filterOptions = Object.entries(CHANGE_FILTERS) as [ChangeFilter, string][];
-  protected readonly changedFieldLabels = changedFieldLabels;
-  protected readonly changedBySomeoneElse = changedBySomeoneElse;
 
-  protected changes = this.adminService.changes;
+  private rsvpChanges = this.adminService.changes;
+  private placeChanges = this.adminService.accommodationChanges;
+  private guests = this.adminService.guests;
+  protected loaded = computed(() => this.rsvpChanges.hasValue() && this.placeChanges.hasValue());
+  protected error = computed(() => this.rsvpChanges.error() ?? this.placeChanges.error());
   protected filters = computed(() =>
-    (["attendance", "others"] as const).filter((filter) => this[filter]() === "true"),
+    (["changes", "attendance", "others"] as const).filter((filter) => this[filter]() === "true"),
   );
-  private all = computed(() => [...(this.changes.value() ?? [])].reverse());
+  private all = computed(() =>
+    changeLog(
+      this.rsvpChanges.value() ?? [],
+      this.placeChanges.value() ?? [],
+      this.guests.value() ?? [],
+    ),
+  );
   protected shown = computed(() => {
     const filters = this.filters();
     return this.all().filter(
-      (change) =>
-        (!filters.includes("attendance") || change.wasAttending !== change.nowAttending) &&
-        (!filters.includes("others") || changedBySomeoneElse(change)),
+      (entry) =>
+        (!filters.includes("changes") || !entry.first) &&
+        (!filters.includes("attendance") || (!entry.first && entry.attendance)) &&
+        (!filters.includes("others") || (!entry.first && entry.changedBy !== entry.previousBy)),
     );
   });
   protected errorMessage = computed(() =>
-    apiErrorMessage(this.changes.error(), "We couldn't load the changes"),
+    apiErrorMessage(this.error(), "We couldn't load the changes"),
   );
 
   constructor() {
-    this.changes.reload();
+    this.reload();
+    // names the groups whose place changed
+    this.guests.reload();
+  }
+
+  protected reload() {
+    this.rsvpChanges.reload();
+    this.placeChanges.reload();
   }
 
   protected setFilters(filters: ChangeFilter[]) {
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: {
+        changes: filters.includes("changes") ? "true" : null,
         attendance: filters.includes("attendance") ? "true" : null,
         others: filters.includes("others") ? "true" : null,
       },

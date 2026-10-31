@@ -7,11 +7,11 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { GroupGuest, Rsvp, RsvpInput } from "../models/api";
-import { mapsLink } from "../models/coordinates";
 import { DIETARY_LABELS, draftFor, GuestStatus, guestStatus } from "../models/rsvp";
 import { apiErrorMessage } from "../services/authService";
 import { GroupService } from "../services/groupService";
 import { RsvpForm } from "./rsvp-form/rsvp-form";
+import { StayingCard } from "./staying-card/staying-card";
 
 const STATUS_LABELS: Record<GuestStatus, { label: string; icon: string }> = {
   unanswered: { label: "Not replied", icon: "schedule" },
@@ -32,13 +32,13 @@ const STATUS_LABELS: Record<GuestStatus, { label: string; icon: string }> = {
     MatIconModule,
     MatProgressBarModule,
     RsvpForm,
+    StayingCard,
   ],
 })
 export class RsvpPage {
   private groupService = inject(GroupService);
   private snackBar = inject(MatSnackBar);
 
-  protected readonly mapsLink = mapsLink;
   protected readonly dietaryLabels = DIETARY_LABELS;
   protected readonly statusLabels = STATUS_LABELS;
   protected group = this.groupService.group;
@@ -56,10 +56,19 @@ export class RsvpPage {
     const self = this.self();
     return self ? draftFor(self, self) : null;
   });
-  protected others = computed(() =>
-    (this.group()?.guests ?? [])
+  protected others = computed(() => {
+    const group = this.group();
+    return (group?.guests ?? [])
       .filter((guest) => guest.guestId !== this.self()?.guestId)
-      .map((guest) => ({ guest, status: guestStatus(guest), ...draftFor(guest, this.self()) })),
+      .map((guest) => ({
+        guest,
+        status: guestStatus(guest, group!),
+        ...draftFor(guest, this.self()),
+      }));
+  });
+  // where people are staying is asked once someone has said they're coming
+  protected anyoneComing = computed(
+    () => this.group()?.guests.some((guest) => guest.rsvp?.attending) ?? false,
   );
   // after each save the next person still to answer opens, so a family can go down the list
   protected nextUnansweredId = computed(

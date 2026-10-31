@@ -1,22 +1,26 @@
 import { AdminGuest } from "./admin";
-import { Rsvp } from "./api";
+import { Coordinates, Rsvp } from "./api";
 import { distanceKm, guestPlaces, unpinnedGuests } from "./guest-map";
 
 const venue = { lat: -33.936306, lng: 22.666 };
 const near = { lat: -33.95, lng: 22.66 };
 const far = { lat: -33.96, lng: 22.46 };
 
-const coming = (accommodation: Rsvp["accommodation"]): Rsvp => ({
+const coming: Rsvp = {
   attending: true,
   dietary: "none",
   dietaryOtherDetails: null,
   shuttle: true,
-  accommodation,
   respondedBy: 1,
   respondedAt: "2026-10-24T10:00:00.000Z",
-});
+};
 
-const guest = (guestId: number, rsvp: Rsvp | null): AdminGuest => ({
+const guest = (
+  guestId: number,
+  rsvp: Rsvp | null,
+  groupAccommodation: Coordinates | null,
+  ownAccommodation: Coordinates | null = null,
+): AdminGuest => ({
   guestId,
   groupId: guestId,
   name: `Guest${guestId}`,
@@ -28,6 +32,8 @@ const guest = (guestId: number, rsvp: Rsvp | null): AdminGuest => ({
   updatedBy: null,
   roles: [],
   rsvp,
+  groupAccommodation,
+  ownAccommodation,
 });
 
 describe("guest map", () => {
@@ -42,12 +48,12 @@ describe("guest map", () => {
 
   it("puts guests on the same pin together, nearest the venue first", () => {
     const guests = [
-      guest(1, coming(far)),
-      guest(2, coming(near)),
-      guest(3, coming(far)),
-      guest(4, { ...coming(null), attending: false }),
-      guest(5, coming(null)),
-      guest(6, null),
+      guest(1, coming, far),
+      guest(2, coming, far, near),
+      guest(3, coming, far),
+      guest(4, { ...coming, attending: false }, far),
+      guest(5, coming, null),
+      guest(6, null, far),
     ];
     const places = guestPlaces(guests, venue);
     expect(places.map((place) => place.guests.map((g) => g.guestId))).toEqual([[2], [1, 3]]);

@@ -17,6 +17,7 @@ const group = (answered: boolean, roles: Role[] = []): Group => ({
   selfId: 1,
   roles,
   rsvpDeadline: "2099-01-01T00:00:00.000Z",
+  accommodation: null,
   guests: [
     {
       guestId: 1,
@@ -28,11 +29,11 @@ const group = (answered: boolean, roles: Role[] = []): Group => ({
             dietary: null,
             dietaryOtherDetails: null,
             shuttle: null,
-            accommodation: null,
             respondedBy: 1,
             respondedAt: "2026-10-24T10:00:00.000Z",
           }
         : null,
+      ownAccommodation: null,
     },
   ],
 });

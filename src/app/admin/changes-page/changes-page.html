@@ -1,15 +1,17 @@
 <header class="intro">
   <h1>RSVP changes</h1>
-  <p class="muted">Every time someone changed an answer they had already given, newest first.</p>
+  <p class="muted">
+    Every RSVP and place to stay, from the first answer to each change after it, newest first.
+  </p>
 </header>
 
-@if (changes.error()) {
+@if (error()) {
   <div class="problem" role="alert">
     <mat-icon>cloud_off</mat-icon>
     <p>{{ errorMessage() }}</p>
-    <button mat-stroked-button type="button" (click)="changes.reload()">Try again</button>
+    <button mat-stroked-button type="button" (click)="reload()">Try again</button>
   </div>
-} @else if (!changes.hasValue()) {
+} @else if (!loaded()) {
   <div class="loading" role="status">
     <mat-spinner diameter="32" />
     <span class="muted">Loading changes…</span>
@@ -29,29 +31,35 @@
   @if (shown().length) {
     <mat-card appearance="outlined" class="list">
       <ul class="rows">
-        @for (change of shown(); track change.historyId) {
+        @for (entry of shown(); track entry.key) {
           <li class="row">
-            <p class="when muted">{{ change.recordedAt | date: "d MMM y, HH:mm" }}</p>
+            <p class="when muted">{{ entry.at | date: "d MMM y, HH:mm" }}</p>
             <div class="what">
-              <a class="guest" [routerLink]="['/admin/guests', change.guestId]">{{
-                change.guest
-              }}</a>
-              @if (change.wasAttending !== change.nowAttending) {
-                <p class="attendance" [class.declined]="!change.nowAttending">
-                  <mat-icon>{{ change.nowAttending ? "check_circle" : "cancel" }}</mat-icon>
-                  {{ change.nowAttending ? "Now coming" : "No longer coming" }}
+              @if (entry.guestId) {
+                <a class="guest" [routerLink]="['/admin/guests', entry.guestId]">{{ entry.who }}</a>
+              } @else {
+                <span class="guest">{{ entry.who }}</span>
+              }
+              @if (entry.attendance; as attendance) {
+                <p class="attendance" [class.declined]="attendance === 'not-coming'">
+                  <mat-icon>{{ attendance === "coming" ? "check_circle" : "cancel" }}</mat-icon>
+                  @if (entry.first) {
+                    {{ attendance === "coming" ? "Coming" : "Not coming" }}
+                  } @else {
+                    {{ attendance === "coming" ? "Now coming" : "No longer coming" }}
+                  }
                 </p>
               }
               <p class="fields">
-                @for (field of changedFieldLabels(change); track field) {
+                @for (field of entry.fields; track field) {
                   <span class="field">{{ field }}</span>
                 }
               </p>
             </div>
             <p class="who">
-              by {{ change.changedBy }}
-              @if (changedBySomeoneElse(change)) {
-                <span class="muted">· first answered by {{ change.previousAnswerBy }}</span>
+              by {{ entry.changedBy }}
+              @if (entry.previousBy && entry.changedBy !== entry.previousBy) {
+                <span class="muted">· before that by {{ entry.previousBy }}</span>
               }
             </p>
           </li>
@@ -60,7 +68,7 @@
     </mat-card>
   } @else {
     <p class="empty muted">
-      {{ filters().length ? "No changes match." : "No one has changed their RSVP yet." }}
+      {{ filters().length ? "Nothing matches." : "No one has RSVPed yet." }}
     </p>
   }
 }

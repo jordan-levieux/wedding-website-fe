@@ -38,6 +38,7 @@ const HISTORY: GuestHistory = {
   ],
   roles: [],
   rsvps: [],
+  accommodation: [],
 };
 
 describe("GuestPage", () => {
@@ -123,7 +124,6 @@ describe("GuestPage", () => {
           dietary: null,
           dietaryOtherDetails: null,
           shuttle: null,
-          accommodation: null,
         },
       ],
     });
@@ -137,10 +137,40 @@ describe("GuestPage", () => {
     );
     expect(
       await loader.getAllHarnesses(
-        MatButtonHarness.with({ text: /Answer for|Save details|new link/ }),
+        MatButtonHarness.with({
+          text: /Answer for|Save details|new link|Pin a place|somewhere else/,
+        }),
       ),
     ).toEqual([]);
     expect(text()).toContain("Only admins can see invite links");
+  });
+
+  it("shows where the group is staying and puts someone back with their group", async () => {
+    const hotel = { lat: -33.95, lng: 22.46 };
+    const guests = GUESTS.map((guest) =>
+      guest.groupId === 1
+        ? {
+            ...guest,
+            groupAccommodation: hotel,
+            ownAccommodation: guest.guestId === 2 ? { lat: -33.99, lng: 22.58 } : null,
+          }
+        : guest,
+    );
+    const { loader, http, settle, element } = await open(["admin"], 2, guests);
+    const staying = () => element().querySelector(".staying")!.textContent!.replace(/\s+/g, " ");
+    expect(staying()).toMatch(
+      /Their group's place.*Location pinned.*Their own place.*Location pinned/,
+    );
+
+    await (await loader.getHarness(MatButtonHarness.with({ text: "Back with the group" }))).click();
+    const request = http.expectOne(`${adminApi}/guests/2/accommodation`);
+    expect(request.request.method).toBe("PUT");
+    expect(request.request.body).toEqual({ accommodation: null });
+    request.flush(guests.map((guest) => ({ ...guest, ownAccommodation: null })));
+    await settle();
+    http.expectOne(`${adminApi}/guests/2/history`).flush(HISTORY);
+    await settle();
+    expect(staying()).toContain("Staying with their group");
   });
 
   it("links to the other people in the group", async () => {

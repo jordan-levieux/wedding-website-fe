@@ -59,54 +59,6 @@
         <p class="copied"><mat-icon>content_copy</mat-icon> Copied from your RSVP</p>
       }
     </div>
-
-    <div class="question" role="group" [attr.aria-labelledby]="id() + '-staying'">
-      <h3 [id]="id() + '-staying'">
-        Where {{ isSelf() ? "are you" : "is " + guest().name }} staying?
-        <span class="optional">Optional</span>
-      </h3>
-      <p class="hint">It helps us plan the shuttle and find everyone in an emergency.</p>
-      @if (venueAccommodation()) {
-        <p class="callout">
-          <mat-icon>hotel</mat-icon>
-          <span
-            >We'd love you to stay at the venue! Book directly with them, they'll take care of
-            everything.</span
-          >
-        </p>
-      }
-      @if (location(); as location) {
-        <div class="pinned">
-          <mat-icon>place</mat-icon>
-          <span>Location pinned</span>
-          <div class="pinned-actions">
-            <a mat-button [href]="mapsLink(location)" target="_blank" rel="noopener">
-              <mat-icon>open_in_new</mat-icon> Check on Google Maps
-            </a>
-            @if (!closed()) {
-              <button mat-button type="button" (click)="onLocationPicked(null)">
-                <mat-icon>close</mat-icon> Clear
-              </button>
-            }
-          </div>
-        </div>
-      }
-      @if (!closed()) {
-        @if (mapsAvailable) {
-          <!-- each map is a billed load, so only load it once it scrolls into view -->
-          @defer (on viewport) {
-            <app-location-picker [value]="location()" (valueChange)="onLocationPicked($event)" />
-          } @placeholder {
-            <div class="map-placeholder"></div>
-          }
-        } @else {
-          <p class="hint">The map isn't available right now.</p>
-        }
-      }
-      @if (prefilled().includes("accommodation")) {
-        <p class="copied"><mat-icon>content_copy</mat-icon> Copied from your RSVP</p>
-      }
-    </div>
   }
 
   @if (!closed()) {

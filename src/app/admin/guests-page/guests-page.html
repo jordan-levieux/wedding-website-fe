@@ -188,9 +188,11 @@
                   </div>
                   <div>
                     <dt>Staying</dt>
-                    <dd [class.missing]="!rsvp.accommodation">
-                      @if (rsvp.accommodation; as location) {
-                        <a [href]="mapsLink(location)" target="_blank" rel="noopener">On the map</a>
+                    <dd [class.missing]="!stayingAt(guest)">
+                      @if (stayingAt(guest); as location) {
+                        <a [href]="mapsLink(location)" target="_blank" rel="noopener">{{
+                          guest.ownAccommodation ? "Own place" : "On the map"
+                        }}</a>
                       } @else {
                         No answer
                       }

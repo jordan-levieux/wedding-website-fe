@@ -2,7 +2,7 @@ import { HttpClient } from "@angular/common/http";
 import { computed, inject, Service, signal } from "@angular/core";
 import { firstValueFrom } from "rxjs";
 import { environment } from "../../environments/environment";
-import { Group, RsvpInput } from "../models/api";
+import { Coordinates, Group, RsvpInput } from "../models/api";
 import { rsvpAttention } from "../models/rsvp";
 
 @Service()
@@ -35,8 +35,18 @@ export class GroupService {
 
   clear = () => this.groupInternal.set(null);
 
-  submitRsvps = (rsvps: RsvpInput[]) =>
-    firstValueFrom(this.http.put<Group>(`${environment.apiUrl}/rsvp`, { rsvps })).then((group) => {
+  submitRsvps = (rsvps: RsvpInput[]) => this.put("rsvp", { rsvps });
+
+  // null clears the group's place
+  setGroupAccommodation = (accommodation: Coordinates | null) =>
+    this.put("accommodation", { accommodation });
+
+  // null puts the guest back with the rest of the group
+  setOwnAccommodation = (guestId: number, accommodation: Coordinates | null) =>
+    this.put(`accommodation/${guestId}`, { accommodation });
+
+  private put = (path: string, body: unknown) =>
+    firstValueFrom(this.http.put<Group>(`${environment.apiUrl}/${path}`, body)).then((group) => {
       this.groupInternal.set(group);
       return group;
     });

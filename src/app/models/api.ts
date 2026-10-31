@@ -15,7 +15,6 @@ export type Rsvp = {
   dietary: DietaryOption | null;
   dietaryOtherDetails: string | null;
   shuttle: boolean | null;
-  accommodation: Coordinates | null;
   respondedBy: number;
   respondedAt: string;
 };
@@ -25,11 +24,15 @@ export type GroupGuest = {
   name: string;
   surname: string;
   rsvp: Rsvp | null;
+  // where this guest is staying when it isn't with the rest of the group
+  ownAccommodation: Coordinates | null;
 };
 
 export type Group = {
   selfId: number;
   roles: Role[];
+  // where the group is staying; editable after the RSVP deadline too
+  accommodation: Coordinates | null;
   guests: GroupGuest[];
   rsvpDeadline: string;
 };
@@ -40,7 +43,6 @@ export type RsvpInput = {
   dietary: DietaryOption | null;
   dietaryOtherDetails: string | null;
   shuttle: boolean | null;
-  accommodation: Coordinates | null;
 };
 
 export type ApiError = {

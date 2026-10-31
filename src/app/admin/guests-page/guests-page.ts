@@ -23,6 +23,7 @@ import {
   matchesSearch,
   missingDetails,
   ROLE_LABELS,
+  stayingAt,
   toGuestFilter,
 } from "../../models/admin";
 import { DIETARY_OPTIONS } from "../../models/api";
@@ -71,6 +72,7 @@ export class GuestsPage {
   protected readonly adminStatus = adminStatus;
   protected readonly missingDetails = missingDetails;
   protected readonly mapsLink = mapsLink;
+  protected readonly stayingAt = stayingAt;
 
   protected guests = this.adminService.guests;
   protected canEdit = this.adminService.canEdit;

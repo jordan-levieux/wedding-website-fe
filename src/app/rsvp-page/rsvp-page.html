@@ -58,16 +58,6 @@
                   <mat-icon>directions_bus</mat-icon>
                   <span>{{ shuttleText(self.rsvp) }}</span>
                 </li>
-                <li>
-                  <mat-icon>hotel</mat-icon>
-                  @if (self.rsvp.accommodation; as location) {
-                    <a [href]="mapsLink(location)" target="_blank" rel="noopener"
-                      >Where you're staying</a
-                    >
-                  } @else {
-                    <span class="muted">Accommodation not added yet</span>
-                  }
-                </li>
               }
             </ul>
             @if (answeredBy(self); as name) {
@@ -85,7 +75,6 @@
               [guest]="self"
               [draft]="selfDraft.draft"
               [isSelf]="true"
-              [venueAccommodation]="venueAccommodation()"
               [closed]="!open()"
               [saving]="savingGuestId() === self.guestId"
               (save)="save($event)"
@@ -99,13 +88,17 @@
         </mat-card-content>
       </mat-card>
 
+      @if (anyoneComing()) {
+        <app-staying-card [group]="group" [venueAccommodation]="venueAccommodation()" />
+      }
+
       @if (self.rsvp && others().length) {
         <section class="group">
           <div class="group-intro">
             <h2>Your group</h2>
             <p class="muted">
-              You can reply for everyone else too. We've copied your shuttle and accommodation
-              answers across, so just change anything that's different.
+              You can reply for everyone else too. We've copied your shuttle answer across, so just
+              change anything that's different.
             </p>
           </div>
           <mat-accordion multi class="accordion">

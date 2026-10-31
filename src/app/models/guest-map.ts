@@ -1,4 +1,4 @@
-import { AdminGuest } from "./admin";
+import { AdminGuest, stayingAt } from "./admin";
 import { Coordinates } from "./api";
 
 export type GuestPlace = {
@@ -23,7 +23,7 @@ export const distanceKm = (a: Coordinates, b: Coordinates) => {
 export const guestPlaces = (guests: AdminGuest[], venue: Coordinates): GuestPlace[] => {
   const places = new Map<string, GuestPlace>();
   guests.forEach((guest) => {
-    const position = guest.rsvp?.attending ? guest.rsvp.accommodation : null;
+    const position = guest.rsvp?.attending ? stayingAt(guest) : null;
     if (!position) {
       return;
     }
@@ -39,4 +39,4 @@ export const guestPlaces = (guests: AdminGuest[], venue: Coordinates): GuestPlac
 };
 
 export const unpinnedGuests = (guests: AdminGuest[]) =>
-  guests.filter((guest) => guest.rsvp?.attending && !guest.rsvp.accommodation);
+  guests.filter((guest) => guest.rsvp?.attending && !stayingAt(guest));

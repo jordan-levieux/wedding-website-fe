@@ -1,4 +1,11 @@
-import { ADMIN_STATUS_DISPLAY, AdminGuest, adminStatus, groupLabel, ROLE_LABELS } from "./admin";
+import {
+  ADMIN_STATUS_DISPLAY,
+  AdminGuest,
+  adminStatus,
+  groupLabel,
+  ROLE_LABELS,
+  stayingAt,
+} from "./admin";
 import { mapsLink } from "./coordinates";
 import { DIETARY_LABELS } from "./rsvp";
 
@@ -11,6 +18,7 @@ const COLUMNS = [
   "Dietary details",
   "Shuttle",
   "Staying",
+  "Staying with",
   "Latitude",
   "Longitude",
   "Answered by",
@@ -50,7 +58,7 @@ export const guestsCsv = (guests: AdminGuest[], all: AdminGuest[]) => {
   const rows = guests.map((guest) => {
     const rsvp = guest.rsvp;
     const coming = rsvp?.attending ? rsvp : null;
-    const location = coming?.accommodation ?? null;
+    const location = coming ? stayingAt(guest) : null;
     return [
       groupLabel(groups.get(guest.groupId) ?? [guest]),
       guest.name,
@@ -60,6 +68,7 @@ export const guestsCsv = (guests: AdminGuest[], all: AdminGuest[]) => {
       coming?.dietaryOtherDetails ?? null,
       coming ? (coming.shuttle === null ? "Not sure" : coming.shuttle ? "Yes" : "No") : null,
       location && mapsLink(location),
+      location && (guest.ownAccommodation ? "Somewhere else" : "Group"),
       location?.lat ?? null,
       location?.lng ?? null,
       rsvp ? (names.get(rsvp.respondedBy) ?? null) : null,

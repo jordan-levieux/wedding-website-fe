@@ -1,0 +1,51 @@
+:host {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.pinned {
+  align-items: center;
+  background: var(--mat-sys-primary-container);
+  border-radius: 16px;
+  color: var(--mat-sys-on-primary-container);
+  display: grid;
+  gap: 0.25rem 0.75rem;
+  grid-template-columns: auto 1fr;
+  padding: 0.5rem 0.5rem 0.5rem 1rem;
+}
+
+.pinned-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  grid-column: 1 / -1;
+}
+
+.map-placeholder {
+  background: var(--mat-sys-surface-container);
+  border-radius: 16px;
+  display: grid;
+  height: clamp(240px, 45dvh, 380px);
+}
+
+.hint {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+@media (min-width: 600px) {
+  .pinned {
+    grid-template-columns: auto 1fr auto;
+  }
+
+  .pinned-actions {
+    grid-column: auto;
+  }
+}

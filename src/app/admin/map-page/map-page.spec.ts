@@ -5,18 +5,19 @@ import { MapPage } from "./map-page";
 
 const hotel = { lat: -33.96, lng: 22.46 };
 const GUESTS = [
-  adminGuest({ rsvp: { ...COMING, accommodation: hotel } }),
+  adminGuest({ rsvp: COMING, groupAccommodation: hotel }),
   adminGuest({
     guestId: 2,
     name: "Bob",
-    rsvp: { ...COMING, shuttle: false, accommodation: hotel },
+    rsvp: { ...COMING, shuttle: false },
+    groupAccommodation: hotel,
   }),
   adminGuest({
     guestId: 3,
     groupId: 2,
     name: "Carl",
     surname: "Botha",
-    rsvp: { ...COMING, accommodation: null },
+    rsvp: COMING,
   }),
   adminGuest({ guestId: 4, groupId: 3, name: "Dee", surname: "Nel" }),
 ];

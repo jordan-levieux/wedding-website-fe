@@ -7,7 +7,6 @@ const coming: Rsvp = {
   dietary: "vegetarian",
   dietaryOtherDetails: null,
   shuttle: true,
-  accommodation: { lat: -33.9, lng: 22.6 },
   respondedBy: 1,
   respondedAt: "2026-10-24T10:00:00.000Z",
 };
@@ -24,6 +23,8 @@ const guest = (overrides: Partial<AdminGuest>): AdminGuest => ({
   updatedBy: null,
   roles: ["admin", "venue_accommodation"],
   rsvp: coming,
+  groupAccommodation: { lat: -33.9, lng: 22.6 },
+  ownAccommodation: null,
   ...overrides,
 });
 
@@ -42,8 +43,8 @@ describe("guestsCsv", () => {
       dietary: "other",
       dietaryOtherDetails: 'No "fun", please',
       shuttle: null,
-      accommodation: null,
     },
+    ownAccommodation: { lat: -34, lng: 22.5 },
   });
   const carl = guest({
     guestId: 3,
@@ -56,7 +57,6 @@ describe("guestsCsv", () => {
       attending: false,
       dietary: null,
       shuttle: null,
-      accommodation: null,
       respondedBy: 3,
     },
   });
@@ -79,6 +79,7 @@ describe("guestsCsv", () => {
         "",
         "Yes",
         '"https://www.google.com/maps/search/?api=1&query=-33.9,22.6"',
+        "Group",
         "-33.9",
         "22.6",
         "Alice Smith",
@@ -88,9 +89,11 @@ describe("guestsCsv", () => {
         '"Admin, Venue stay"',
       ].join(","),
     );
-    expect(lines[1]).toContain(',Other,"No ""fun"", please",Not sure,,,,Alice Smith,');
+    expect(lines[1]).toContain(
+      ',Other,"No ""fun"", please",Not sure,"https://www.google.com/maps/search/?api=1&query=-34,22.5",Somewhere else,-34,22.5,Alice Smith,',
+    );
     // not coming: no dietary, shuttle or location
-    expect(lines[2]).toMatch(/^Carl Botha,Carl,Botha,Declined,,,,,,,Carl Botha,/);
+    expect(lines[2]).toMatch(/^Carl Botha,Carl,Botha,Declined,,,,,,,,Carl Botha,/);
   });
 
   it("keeps a guest's text from running as a formula", () => {

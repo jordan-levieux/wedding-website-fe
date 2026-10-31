@@ -20,7 +20,6 @@ const aliceAnswer: Rsvp = {
   dietary: "none",
   dietaryOtherDetails: null,
   shuttle: true,
-  accommodation: { lat: -33.9249, lng: 18.4241 },
   respondedBy: 1,
   respondedAt: "2026-10-24T10:00:00.000Z",
 };
@@ -32,10 +31,11 @@ const makeGroup = (
   selfId: 1,
   roles: [],
   rsvpDeadline: FUTURE,
+  accommodation: null,
   guests: [
-    { guestId: 1, name: "Alice", surname: "Smith", rsvp: aliceRsvp },
-    { guestId: 2, name: "Bob", surname: "Smith", rsvp: null },
-    { guestId: 3, name: "Cleo", surname: "Smith", rsvp: null },
+    { guestId: 1, name: "Alice", surname: "Smith", rsvp: aliceRsvp, ownAccommodation: null },
+    { guestId: 2, name: "Bob", surname: "Smith", rsvp: null, ownAccommodation: null },
+    { guestId: 3, name: "Cleo", surname: "Smith", rsvp: null, ownAccommodation: null },
   ],
   ...overrides,
 });
@@ -51,7 +51,6 @@ describe("RsvpPage", () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
-        // the map itself is covered by the RsvpForm tests
         { provide: GoogleMapsLoader, useValue: { available: false } },
       ],
     });
@@ -64,6 +63,10 @@ describe("RsvpPage", () => {
   };
   const text = () => (fixture.nativeElement as HTMLElement).textContent ?? "";
   const forms = () => (fixture.nativeElement as HTMLElement).querySelectorAll("app-rsvp-form");
+  const button = (label: string) =>
+    [...(fixture.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>("button")].find(
+      (candidate) => candidate.textContent!.trim().endsWith(label),
+    )!;
 
   afterEach(() => http.verify());
 
@@ -86,7 +89,7 @@ describe("RsvpPage", () => {
     expect(await Promise.all(panels.map((panel) => panel.isExpanded()))).toEqual([true, false]);
   });
 
-  it("saves someone else's RSVP with the copied shuttle and accommodation answers", async () => {
+  it("saves someone else's RSVP with the copied shuttle answer", async () => {
     await setup(makeGroup());
     const bobPanel = (await loader.getAllHarnesses(MatExpansionPanelHarness))[0]!;
     const [accept] = await (
@@ -94,7 +97,6 @@ describe("RsvpPage", () => {
     ).getToggles({ text: "Joyfully accept" });
     await accept!.check();
     await (await bobPanel.getHarness(MatChipListboxHarness)).selectChips({ text: "Vegetarian" });
-    expect(await bobPanel.getTextContent()).toContain("Location pinned");
 
     (fixture.nativeElement as HTMLElement)
       .querySelectorAll<HTMLButtonElement>("mat-expansion-panel button[type=submit]")[0]!
@@ -111,11 +113,10 @@ describe("RsvpPage", () => {
           dietary: "vegetarian",
           dietaryOtherDetails: null,
           shuttle: true,
-          accommodation: { lat: -33.9249, lng: 18.4241 },
         },
       ],
     });
-    const updated = makeGroup();
+    const updated = makeGroup({ accommodation: { lat: -33.95, lng: 22.46 } });
     updated.guests[1]!.rsvp = { ...aliceAnswer, dietary: "vegetarian" };
     request.flush(updated);
     await fixture.whenStable();
@@ -125,20 +126,50 @@ describe("RsvpPage", () => {
     expect(await panels[1]!.isExpanded()).toBe(true);
   });
 
-  it("shows the venue suggestion to guests who are encouraged to book there", async () => {
-    await setup(makeGroup({ roles: ["venue_accommodation"] }, null));
-    const [accept] = await (
-      await loader.getHarness(MatButtonToggleGroupHarness)
-    ).getToggles({ text: "Joyfully accept" });
-    await accept!.check();
+  it("asks where the group is staying once someone is coming", async () => {
+    await setup(makeGroup({}, null));
+    expect(text()).not.toContain("Where is your group staying?");
+    groupService.setGroup(makeGroup({ roles: ["venue_accommodation"] }));
     await fixture.whenStable();
+    expect(text()).toContain("Where is your group staying?");
     expect(text()).toContain("We'd love you to stay at the venue");
+    expect(text()).toContain("Anyone staying somewhere else?");
   });
 
-  it("is read-only after the deadline", async () => {
-    await setup(makeGroup({ rsvpDeadline: PAST }));
+  it("is read-only after the deadline, apart from where people are staying", async () => {
+    await setup(makeGroup({ rsvpDeadline: PAST, accommodation: { lat: -33.95, lng: 22.46 } }));
     expect(text()).toContain("RSVPs closed on");
     expect(text()).not.toContain("Change my RSVP");
     expect((fixture.nativeElement as HTMLElement).querySelector("button[type=submit]")).toBeNull();
+
+    button("Change").click();
+    await fixture.whenStable();
+    button("Clear").click();
+    await fixture.whenStable();
+    button("Remove location").click();
+    const request = http.expectOne(`${environment.apiUrl}/accommodation`);
+    expect(request.request.method).toBe("PUT");
+    expect(request.request.body).toEqual({ accommodation: null });
+    request.flush(makeGroup({ rsvpDeadline: PAST }));
+  });
+
+  it("puts someone staying somewhere else back with the group", async () => {
+    const group = makeGroup({ accommodation: { lat: -33.95, lng: 22.46 } });
+    group.guests[1]!.ownAccommodation = { lat: -33.99, lng: 22.58 };
+    await setup(group);
+    const bob = [...(fixture.nativeElement as HTMLElement).querySelectorAll(".member")][1]!;
+    expect(bob.textContent).toContain("Bob Smith");
+    expect(bob.textContent).toContain("Staying somewhere else");
+
+    [...bob.querySelectorAll("button")]
+      .find((b) => b.textContent!.includes("Back with the group"))!
+      .click();
+    const request = http.expectOne(`${environment.apiUrl}/accommodation/2`);
+    expect(request.request.body).toEqual({ accommodation: null });
+    request.flush(makeGroup({ accommodation: { lat: -33.95, lng: 22.46 } }));
+    await fixture.whenStable();
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelectorAll(".member")[1]!.textContent,
+    ).toContain("With the group");
   });
 });

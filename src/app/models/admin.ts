@@ -1,5 +1,5 @@
 // Mirrors the backend's admin responses (wedding-website-be/src/admin-store.ts).
-import { DIETARY_OPTIONS, DietaryOption, Role, Rsvp } from "./api";
+import { Coordinates, DIETARY_OPTIONS, DietaryOption, Role, Rsvp } from "./api";
 import { DIETARY_LABELS } from "./rsvp";
 
 export type AdminGuest = {
@@ -15,7 +15,12 @@ export type AdminGuest = {
   updatedBy: number | null;
   roles: Role[];
   rsvp: Rsvp | null;
+  groupAccommodation: Coordinates | null;
+  // set when they're staying somewhere other than the rest of their group
+  ownAccommodation: Coordinates | null;
 };
+
+export const stayingAt = (guest: AdminGuest) => guest.ownAccommodation ?? guest.groupAccommodation;
 
 export type AdminStatus = "attending" | "declined" | "awaiting";
 
@@ -30,7 +35,7 @@ export const ADMIN_STATUS_DISPLAY: Record<AdminStatus, { label: string; icon: st
 
 // coming, but we'd still like to know about the shuttle or where they're staying
 export const missingDetails = (guest: AdminGuest) =>
-  !!guest.rsvp?.attending && (guest.rsvp.shuttle === null || guest.rsvp.accommodation === null);
+  !!guest.rsvp?.attending && (guest.rsvp.shuttle === null || !stayingAt(guest));
 
 export const GUEST_FILTERS = [
   "all",
@@ -155,8 +160,8 @@ export const adminSummary = (guests: AdminGuest[]): AdminSummary => {
       unanswered: attending.filter((rsvp) => rsvp.shuttle === null).length,
     },
     staying: {
-      pinned: attending.filter((rsvp) => rsvp.accommodation).length,
-      unanswered: attending.filter((rsvp) => !rsvp.accommodation).length,
+      pinned: count((guest) => !!guest.rsvp?.attending && !!stayingAt(guest)),
+      unanswered: count((guest) => !!guest.rsvp?.attending && !stayingAt(guest)),
     },
   };
 };
@@ -210,24 +215,49 @@ export type RoleHistoryEntry = {
   revokedAt: string | null;
 };
 
+// "group" entries are for the group the guest is in now
+export type AccommodationHistoryEntry = {
+  historyId: number;
+  scope: "group" | "own";
+  accommodation: Coordinates | null;
+  updatedBy: number;
+  recordedAt: string;
+};
+
 export type GuestHistory = {
   details: GuestHistoryEntry[];
   roles: RoleHistoryEntry[];
   // respondedAt is when that version was recorded
   rsvps: (Rsvp & { historyId: number })[];
+  accommodation: AccommodationHistoryEntry[];
 };
 
+// a place being pinned, moved or cleared: a group's (groupId) or a guest's own (guestId);
+// previous* is null for the first pin
+export type AccommodationChange = {
+  recordedAt: string;
+  groupId: number | null;
+  guestId: number | null;
+  previousSetBy: string | null;
+  changedBy: string;
+  hadPlace: boolean;
+  hasPlace: boolean;
+  prevHistoryId: number | null;
+  historyId: number;
+};
+
+// a guest's first answer (previous* and was* are null) or a change to it
 export type RsvpChange = {
   recordedAt: string;
   guestId: number;
   guest: string;
-  previousAnswerBy: string;
+  previousAnswerBy: string | null;
   changedBy: string;
-  // comma separated column names, e.g. "attending, dietary"
+  // comma separated column names, e.g. "attending, dietary"; empty for a first answer
   changedFields: string;
-  wasAttending: boolean;
+  wasAttending: boolean | null;
   nowAttending: boolean;
-  prevHistoryId: number;
+  prevHistoryId: number | null;
   historyId: number;
 };
 
@@ -236,7 +266,6 @@ const FIELD_LABELS: Record<string, string> = {
   dietary: "Dietary",
   dietary_other_details: "Dietary",
   shuttle: "Shuttle",
-  accommodation: "Staying",
 };
 
 export const changedFieldLabels = (change: RsvpChange) => [
@@ -251,11 +280,7 @@ const shuttleText = (shuttle: boolean | null) =>
 
 export const answerSummary = (rsvp: Rsvp) =>
   rsvp.attending
-    ? [
-        dietaryText(rsvp),
-        `Shuttle: ${shuttleText(rsvp.shuttle)}`,
-        rsvp.accommodation ? "Staying: pinned" : "Staying: no answer",
-      ].join(" · ")
+    ? [dietaryText(rsvp), `Shuttle: ${shuttleText(rsvp.shuttle)}`].join(" · ")
     : "Not coming";
 
 export type TimelineEntry = {
@@ -266,8 +291,21 @@ export type TimelineEntry = {
   by: string | null;
 };
 
-const sameLocation = (a: Rsvp["accommodation"], b: Rsvp["accommodation"]) =>
+const samePlace = (a: Coordinates | null, b: Coordinates | null) =>
   a?.lat === b?.lat && a?.lng === b?.lng;
+
+const PLACE_TITLES = {
+  group: {
+    pinned: "Group's place pinned",
+    moved: "Group's place moved",
+    removed: "Group's place removed",
+  },
+  own: {
+    pinned: "Staying somewhere else",
+    moved: "Own place moved",
+    removed: "Back with the group",
+  },
+};
 
 const rsvpChanges = (before: Rsvp, after: Rsvp) => {
   if (!after.attending) {
@@ -278,8 +316,6 @@ const rsvpChanges = (before: Rsvp, after: Rsvp) => {
       `Dietary: ${before.attending ? dietaryText(before) : "—"} → ${dietaryText(after)}`,
     before.shuttle !== after.shuttle &&
       `Shuttle: ${shuttleText(before.shuttle)} → ${shuttleText(after.shuttle)}`,
-    !sameLocation(before.accommodation, after.accommodation) &&
-      (after.accommodation ? "Staying: new pin" : "Staying: pin removed"),
   ].filter((change) => change !== false);
 };
 
@@ -366,8 +402,92 @@ export const guestTimeline = (
     }
   });
 
+  (["group", "own"] as const).forEach((scope) => {
+    const changes = history.accommodation.filter((entry) => entry.scope === scope);
+    changes.forEach((entry, index) => {
+      const before = changes[index - 1]?.accommodation ?? null;
+      const after = entry.accommodation;
+      if (samePlace(before, after)) {
+        return;
+      }
+      const titles = PLACE_TITLES[scope];
+      if (!after) {
+        add(entry.recordedAt, "wrong_location", titles.removed, entry.updatedBy);
+      } else {
+        add(
+          entry.recordedAt,
+          before ? "edit_location_alt" : "place",
+          before ? titles.moved : titles.pinned,
+          entry.updatedBy,
+        );
+      }
+    });
+  });
+
   return entries
     .map((entry, order) => ({ entry, order }))
     .sort((a, b) => b.entry.at.localeCompare(a.entry.at) || b.order - a.order)
     .map(({ entry }) => entry);
+};
+
+export type ChangeLogEntry = {
+  key: string;
+  at: string;
+  // whose page the entry links to; for a group, its first member
+  guestId: number | null;
+  who: string;
+  // a first answer or pin, rather than a change to one
+  first: boolean;
+  // for a first answer, whether they're coming; for a change, only when that changed
+  attendance: "coming" | "not-coming" | null;
+  fields: string[];
+  changedBy: string;
+  previousBy: string | null;
+};
+
+/** First answers, pins and every change after, newest first. `guests` names the people and groups. */
+export const changeLog = (
+  rsvps: RsvpChange[],
+  places: AccommodationChange[],
+  guests: AdminGuest[],
+): ChangeLogEntry[] => {
+  const fromRsvps = rsvps.map((change): ChangeLogEntry => ({
+    key: `rsvp-${change.historyId}`,
+    at: change.recordedAt,
+    guestId: change.guestId,
+    who: change.guest,
+    first: change.prevHistoryId === null,
+    attendance:
+      change.wasAttending === change.nowAttending
+        ? null
+        : change.nowAttending
+          ? "coming"
+          : "not-coming",
+    fields: change.prevHistoryId === null ? ["First RSVP"] : changedFieldLabels(change),
+    changedBy: change.changedBy,
+    previousBy: change.previousAnswerBy,
+  }));
+  const fromPlaces = places.map((change): ChangeLogEntry => {
+    const members = guests.filter((guest) =>
+      change.guestId === null ? guest.groupId === change.groupId : guest.guestId === change.guestId,
+    );
+    const titles = PLACE_TITLES[change.guestId === null ? "group" : "own"];
+    const title = !change.hasPlace
+      ? titles.removed
+      : change.hadPlace
+        ? titles.moved
+        : titles.pinned;
+    return {
+      key: `place-${change.historyId}`,
+      at: change.recordedAt,
+      guestId: members[0]?.guestId ?? null,
+      who: members.length ? groupLabel(members) : "Someone no longer listed",
+      first: change.prevHistoryId === null,
+      attendance: null,
+      fields: [title],
+      changedBy: change.changedBy,
+      previousBy: change.previousSetBy,
+    };
+  });
+  return [...fromRsvps, ...fromPlaces].sort((a, b) => b.at.localeCompare(a.at));
 };

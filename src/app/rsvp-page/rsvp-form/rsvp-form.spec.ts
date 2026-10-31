@@ -1,23 +1,25 @@
 import { HarnessLoader } from "@angular/cdk/testing";
 import { TestbedHarnessEnvironment } from "@angular/cdk/testing/testbed";
-import { ComponentFixture, DeferBlockState, TestBed } from "@angular/core/testing";
-import { By } from "@angular/platform-browser";
+import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { MatButtonToggleGroupHarness } from "@angular/material/button-toggle/testing";
 import { MatChipListboxHarness } from "@angular/material/chips/testing";
 import { MatInputHarness } from "@angular/material/input/testing";
 import { GroupGuest, RsvpInput } from "../../models/api";
 import { PrefilledField, RsvpDraft } from "../../models/rsvp";
-import { GoogleMapsLoader } from "../../services/googleMapsLoader";
-import { LocationPicker } from "../location-picker/location-picker";
 import { RsvpForm } from "./rsvp-form";
 
-const bob: GroupGuest = { guestId: 2, name: "Bob", surname: "Smith", rsvp: null };
+const bob: GroupGuest = {
+  guestId: 2,
+  name: "Bob",
+  surname: "Smith",
+  rsvp: null,
+  ownAccommodation: null,
+};
 const blank: RsvpDraft = {
   attending: null,
   dietary: null,
   dietaryOtherDetails: "",
   shuttle: "unsure",
-  accommodation: null,
 };
 
 describe("RsvpForm", () => {
@@ -30,21 +32,8 @@ describe("RsvpForm", () => {
       draft?: RsvpDraft;
       prefilled?: PrefilledField[];
       closed?: boolean;
-      mapsAvailable?: boolean;
     } = {},
   ) => {
-    TestBed.configureTestingModule({
-      providers: [
-        {
-          provide: GoogleMapsLoader,
-          // never resolves: the picker stays on its loading state, which is all these tests need
-          useValue: {
-            available: options.mapsAvailable ?? false,
-            load: () => new Promise(() => {}),
-          },
-        },
-      ],
-    });
     fixture = TestBed.createComponent(RsvpForm);
     fixture.componentRef.setInput("guest", bob);
     fixture.componentRef.setInput("draft", options.draft ?? blank);
@@ -66,19 +55,6 @@ describe("RsvpForm", () => {
   };
   const chooseDietary = async (label: string) =>
     (await loader.getHarness(MatChipListboxHarness)).selectChips({ text: label });
-  const renderMap = async () => {
-    const [mapBlock] = await fixture.getDeferBlocks();
-    await mapBlock!.render(DeferBlockState.Complete);
-    await fixture.whenStable();
-    return fixture.debugElement.query(By.directive(LocationPicker))
-      .componentInstance as LocationPicker;
-  };
-  const clickButton = async (label: string) => {
-    [...element().querySelectorAll<HTMLButtonElement>("button")]
-      .find((button) => button.textContent?.includes(label))!
-      .click();
-    await fixture.whenStable();
-  };
   const send = async () => {
     element().querySelector<HTMLButtonElement>("button[type=submit]")!.click();
     await new Promise((resolve) => setTimeout(resolve));
@@ -103,7 +79,6 @@ describe("RsvpForm", () => {
         dietary: null,
         dietaryOtherDetails: null,
         shuttle: null,
-        accommodation: null,
       },
     ]);
   });
@@ -130,41 +105,8 @@ describe("RsvpForm", () => {
         dietary: "other",
         dietaryOtherDetails: "no mushrooms",
         shuttle: null,
-        accommodation: null,
       },
     ]);
-  });
-
-  it("pins where they're staying from the map, and can clear it again", async () => {
-    await setup({ mapsAvailable: true });
-    await choose(0, "Joyfully accept");
-    await chooseDietary("Vegetarian");
-    await choose(1, "Yes please");
-
-    const picker = await renderMap();
-    expect(text()).toContain("Loading the map");
-    picker.value.set({ lat: -33.9249, lng: 18.4241 });
-    await fixture.whenStable();
-    expect(text()).toContain("Location pinned");
-    expect(
-      element().querySelector<HTMLAnchorElement>("a[href*='google.com/maps']")?.href,
-    ).toContain("query=-33.9249,18.4241");
-
-    await send();
-    expect(saved).toEqual([
-      {
-        guestId: 2,
-        attending: true,
-        dietary: "vegetarian",
-        dietaryOtherDetails: null,
-        shuttle: true,
-        accommodation: { lat: -33.9249, lng: 18.4241 },
-      },
-    ]);
-
-    await clickButton("Clear");
-    expect(text()).not.toContain("Location pinned");
-    expect(picker.value()).toBeNull();
   });
 
   it("shows the answers that were copied from the caller's RSVP", async () => {
@@ -173,19 +115,12 @@ describe("RsvpForm", () => {
         ...blank,
         attending: "yes",
         shuttle: "yes",
-        accommodation: { lat: -33.9, lng: 18.4 },
       },
-      prefilled: ["shuttle", "accommodation"],
+      prefilled: ["shuttle"],
     });
     const [yes] = await (await choice(1)).getToggles({ text: "Yes please" });
     expect(await yes!.isChecked()).toBe(true);
-    expect(text()).toContain("Location pinned");
-    expect(text().match(/Copied from your RSVP/g)).toHaveLength(2);
-  });
-
-  it("explains when the map isn't available", async () => {
-    await setup({ draft: { ...blank, attending: "yes" } });
-    expect(text()).toContain("The map isn't available right now");
+    expect(text().match(/Copied from your RSVP/g)).toHaveLength(1);
   });
 
   it("is read-only once RSVPs have closed", async () => {

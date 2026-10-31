@@ -1,0 +1,50 @@
+@if (draft(); as location) {
+  <div class="pinned">
+    <mat-icon>place</mat-icon>
+    <span>{{ changed() ? "New location pinned" : "Location pinned" }}</span>
+    <div class="pinned-actions">
+      <a mat-button [href]="mapsLink(location)" target="_blank" rel="noopener">
+        <mat-icon>open_in_new</mat-icon> Check on Google Maps
+      </a>
+      @if (!disabled()) {
+        @if (editing()) {
+          <button mat-button type="button" (click)="draft.set(null)">
+            <mat-icon>close</mat-icon> Clear
+          </button>
+        } @else {
+          <button mat-button type="button" (click)="editing.set(true)">
+            <mat-icon>edit_location_alt</mat-icon> Change
+          </button>
+        }
+      }
+    </div>
+  </div>
+}
+
+@if (editing() && !disabled()) {
+  @if (mapsAvailable) {
+    @defer (on viewport) {
+      <app-location-picker [value]="draft()" (valueChange)="draft.set($event)" />
+    } @placeholder {
+      <div class="map-placeholder"></div>
+    }
+  } @else {
+    <p class="hint">The map isn't available right now.</p>
+  }
+  @if (changed() || canCancel()) {
+    <div class="actions">
+      @if (canCancel()) {
+        <button mat-button type="button" (click)="cancel()">Cancel</button>
+      }
+      <button
+        mat-flat-button
+        type="button"
+        [disabled]="saving() || !changed()"
+        (click)="save.emit(draft())"
+      >
+        <mat-icon>{{ saving() ? "hourglass_top" : "check" }}</mat-icon>
+        {{ saving() ? "Saving…" : draft() ? "Save location" : "Remove location" }}
+      </button>
+    </div>
+  }
+}

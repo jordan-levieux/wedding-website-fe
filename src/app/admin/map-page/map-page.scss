@@ -115,13 +115,22 @@
   gap: 0.125rem;
 }
 
-.names-inline,
-.unpinned {
-  font: var(--mat-sys-title-small);
+.names-inline {
+  font: var(--mat-sys-body-medium);
 
   a {
     color: inherit;
   }
+}
+
+.place .names-inline,
+.group-label {
+  font: var(--mat-sys-title-small);
+}
+
+.unpinned {
+  display: grid;
+  gap: 0.125rem;
 }
 
 .meta {

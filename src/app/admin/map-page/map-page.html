@@ -145,11 +145,18 @@
           <h2>Not pinned yet</h2>
           <p class="muted caption">Coming, but haven't said where they're staying.</p>
           <ul class="rows">
-            @for (guest of unpinned(); track guest.guestId) {
+            @for (group of unpinned(); track group.groupId) {
               <li class="unpinned">
-                <a [routerLink]="['/admin/guests', guest.guestId]"
-                  >{{ guest.name }} {{ guest.surname }}</a
-                >
+                @if (group.guests.length > 1) {
+                  <p class="group-label">{{ group.label }}</p>
+                }
+                <p class="names-inline" [class.group-label]="group.guests.length === 1">
+                  @for (guest of group.guests; track guest.guestId) {
+                    <a [routerLink]="['/admin/guests', guest.guestId]"
+                      >{{ guest.name }} {{ guest.surname }}</a
+                    >{{ $last ? "" : "," }}
+                  }
+                </p>
               </li>
             }
           </ul>

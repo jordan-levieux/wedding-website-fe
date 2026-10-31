@@ -3,7 +3,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  inject,
   input,
   linkedSignal,
   output,
@@ -23,11 +22,8 @@ import { MatChipsModule } from "@angular/material/chips";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
-import { Coordinates, DIETARY_OPTIONS, GroupGuest, RsvpInput } from "../../models/api";
-import { mapsLink } from "../../models/coordinates";
+import { DIETARY_OPTIONS, GroupGuest, RsvpInput } from "../../models/api";
 import { DIETARY_LABELS, PrefilledField, RsvpDraft, toRsvpInput } from "../../models/rsvp";
-import { GoogleMapsLoader } from "../../services/googleMapsLoader";
-import { LocationPicker } from "../location-picker/location-picker";
 
 export const MAX_DETAILS_LENGTH = 500;
 
@@ -38,7 +34,6 @@ export const MAX_DETAILS_LENGTH = 500;
   templateUrl: "./rsvp-form.html",
   imports: [
     FormField,
-    LocationPicker,
     MatButtonModule,
     MatButtonToggleModule,
     MatChipsModule,
@@ -53,7 +48,6 @@ export class RsvpForm {
   draft = input.required<RsvpDraft>();
   prefilled = input<PrefilledField[]>([]);
   isSelf = input(false);
-  venueAccommodation = input(false);
   closed = input(false);
   saving = input(false);
   save = output<RsvpInput>();
@@ -63,8 +57,6 @@ export class RsvpForm {
     label: DIETARY_LABELS[value],
   }));
   protected readonly maxDetailsLength = MAX_DETAILS_LENGTH;
-  protected readonly mapsLink = mapsLink;
-  protected readonly mapsAvailable = inject(GoogleMapsLoader).available;
 
   // resets to the saved answer whenever the group is reloaded
   protected model = linkedSignal<RsvpDraft>(() => ({ ...this.draft() }));
@@ -90,15 +82,10 @@ export class RsvpForm {
 
   protected id = computed(() => `rsvp-${this.guest().guestId}`);
   protected attending = computed(() => this.model().attending === "yes");
-  protected location = computed(() => this.model().accommodation);
 
   protected errorOf<T>(field: FieldTree<T>): string | undefined {
     const state = field();
     return state.touched() ? state.errors()[0]?.message : undefined;
-  }
-
-  protected onLocationPicked(coordinates: Coordinates | null) {
-    this.model.update((draft) => ({ ...draft, accommodation: coordinates }));
   }
 
   protected onSubmit(event: Event) {

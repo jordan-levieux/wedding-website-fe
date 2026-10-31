@@ -15,7 +15,7 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { RouterLink } from "@angular/router";
 import { environment } from "../../../environments/environment";
-import { adminSummary } from "../../models/admin";
+import { adminSummary, groupGuests } from "../../models/admin";
 import { mapsLink } from "../../models/coordinates";
 import { GuestPlace, guestPlaces, unpinnedGuests } from "../../models/guest-map";
 import { AdminService } from "../../services/adminService";
@@ -75,7 +75,7 @@ export class MapPage {
   protected pinned = computed(() =>
     this.places().reduce((count, place) => count + place.guests.length, 0),
   );
-  protected unpinned = computed(() => unpinnedGuests(this.all()));
+  protected unpinned = computed(() => groupGuests(this.all(), unpinnedGuests(this.all())));
   protected errorMessage = computed(() =>
     apiErrorMessage(this.guests.error(), "We couldn't load the guest list"),
   );

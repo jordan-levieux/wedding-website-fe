@@ -1,0 +1,87 @@
+@let group = this.group();
+<mat-card appearance="outlined" class="card">
+  <mat-card-header>
+    <mat-card-title>
+      {{ isGroup() ? "Where is your group staying?" : "Where are you staying?" }}
+    </mat-card-title>
+    <mat-card-subtitle>Optional, and you can change it any time</mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content class="content">
+    <p class="hint">
+      @if (isGroup()) {
+        Pin it once for everyone. It helps us plan the shuttle and find everyone in an emergency.
+      } @else {
+        It helps us plan the shuttle and find you in an emergency.
+      }
+    </p>
+    @if (venueAccommodation()) {
+      <p class="callout">
+        <mat-icon>hotel</mat-icon>
+        <span
+          >We'd love you to stay at the venue! Book directly with them, they'll take care of
+          everything.</span
+        >
+      </p>
+    }
+    <app-place-editor
+      [place]="group.accommodation"
+      [saving]="saving() === 'group'"
+      (save)="saveGroup($event)"
+    />
+
+    @if (isGroup()) {
+      <section class="elsewhere" aria-labelledby="staying-elsewhere">
+        <h3 id="staying-elsewhere">Anyone staying somewhere else?</h3>
+        <ul class="members">
+          @for (guest of members(); track guest.guestId) {
+            <li class="member">
+              <div class="member-info">
+                <span class="member-name">
+                  {{ guest.guestId === group.selfId ? "You" : guest.name + " " + guest.surname }}
+                </span>
+                <span class="muted member-state">
+                  @if (guest.ownAccommodation; as own) {
+                    Staying somewhere else ·
+                    <a [href]="mapsLink(own)" target="_blank" rel="noopener">See on Google Maps</a>
+                  } @else {
+                    With the group
+                  }
+                </span>
+              </div>
+              @if (editingId() !== guest.guestId) {
+                <div class="member-actions">
+                  @if (guest.ownAccommodation) {
+                    <button
+                      mat-button
+                      type="button"
+                      [disabled]="saving() === guest.guestId"
+                      (click)="saveOwn(guest.guestId, null)"
+                    >
+                      Back with the group
+                    </button>
+                    <button mat-button type="button" (click)="editingId.set(guest.guestId)">
+                      Change
+                    </button>
+                  } @else {
+                    <button mat-button type="button" (click)="editingId.set(guest.guestId)">
+                      <mat-icon>add_location_alt</mat-icon> Somewhere else
+                    </button>
+                  }
+                </div>
+              } @else {
+                <app-place-editor
+                  class="member-editor"
+                  [place]="guest.ownAccommodation"
+                  [startEditing]="true"
+                  [saving]="saving() === guest.guestId"
+                  (save)="saveOwn(guest.guestId, $event)"
+                  (cancelled)="editingId.set(null)"
+                />
+              }
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  </mat-card-content>
+</mat-card>

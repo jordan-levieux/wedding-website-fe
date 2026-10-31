@@ -1,6 +1,8 @@
 import { Rsvp } from "./api";
 import {
+  AccommodationChange,
   AdminGuest,
+  changeLog,
   adminSummary,
   answerSummary,
   changedFieldLabels,
@@ -22,7 +24,6 @@ const coming: Rsvp = {
   dietary: "vegetarian",
   dietaryOtherDetails: null,
   shuttle: true,
-  accommodation: { lat: -33.9, lng: 22.6 },
   respondedBy: 1,
   respondedAt: "2026-10-24T10:00:00.000Z",
 };
@@ -39,18 +40,30 @@ const guest = (overrides: Partial<AdminGuest>): AdminGuest => ({
   updatedBy: null,
   roles: [],
   rsvp: null,
+  groupAccommodation: null,
+  ownAccommodation: null,
   ...overrides,
 });
 
-const alice = guest({ signedUpAt: "2026-10-01T10:00:00.000Z", rsvp: coming });
-const bob = guest({ guestId: 2, name: "Bob", rsvp: { ...coming, shuttle: null } });
+const hotel = { lat: -33.9, lng: 22.6 };
+const alice = guest({
+  signedUpAt: "2026-10-01T10:00:00.000Z",
+  rsvp: coming,
+  groupAccommodation: hotel,
+});
+const bob = guest({
+  guestId: 2,
+  name: "Bob",
+  rsvp: { ...coming, shuttle: null },
+  groupAccommodation: hotel,
+});
 const zoë = guest({ guestId: 3, groupId: 2, name: "Zoë", surname: "Ndlovu" });
 const carl = guest({
   guestId: 4,
   groupId: 2,
   name: "Carl",
   surname: "Botha",
-  rsvp: { ...coming, attending: false, dietary: null, shuttle: null, accommodation: null },
+  rsvp: { ...coming, attending: false, dietary: null, shuttle: null },
 });
 
 describe("admin guest helpers", () => {
@@ -124,22 +137,21 @@ describe("admin guest helpers", () => {
   });
 
   it("summarises an answer in a line", () => {
-    expect(answerSummary(coming)).toBe("Vegetarian · Shuttle: yes · Staying: pinned");
+    expect(answerSummary(coming)).toBe("Vegetarian · Shuttle: yes");
     expect(
       answerSummary({
         ...coming,
         dietary: "other",
         dietaryOtherDetails: "No nuts",
         shuttle: null,
-        accommodation: null,
       }),
-    ).toBe("Other: No nuts · Shuttle: not sure · Staying: no answer");
+    ).toBe("Other: No nuts · Shuttle: not sure");
     expect(answerSummary(carl.rsvp!)).toBe("Not coming");
   });
 
   it("names the parts of an RSVP that changed", () => {
-    const change = { changedFields: "attending, dietary, dietary_other_details, accommodation" };
-    expect(changedFieldLabels(change as RsvpChange)).toEqual(["Attendance", "Dietary", "Staying"]);
+    const change = { changedFields: "attending, dietary, dietary_other_details, shuttle" };
+    expect(changedFieldLabels(change as RsvpChange)).toEqual(["Attendance", "Dietary", "Shuttle"]);
   });
 });
 
@@ -163,7 +175,7 @@ describe("guest timeline", () => {
       : ({ 1: "Alice Smith", 9: "Jordan Admin" } as Record<number, string>)[guestId];
   const timeline = (history: Partial<GuestHistory>) =>
     guestTimeline(
-      { details: [], roles: [], rsvps: [], ...history },
+      { details: [], roles: [], rsvps: [], accommodation: [], ...history },
       names,
       (groupId) => `Group ${groupId}`,
     ).map(({ at, title, detail, by }) => [at.slice(5, 10), title, detail, by]);
@@ -261,7 +273,6 @@ describe("guest timeline", () => {
             respondedAt: at(3),
             dietary: "none",
             shuttle: false,
-            accommodation: null,
           },
           { ...carl.rsvp!, historyId: 4, respondedAt: at(4) },
         ],
@@ -271,10 +282,111 @@ describe("guest timeline", () => {
       [
         "10-03",
         "Updated RSVP",
-        "Dietary: Vegetarian → No dietary requirements · Shuttle: yes → no · Staying: pin removed",
+        "Dietary: Vegetarian → No dietary requirements · Shuttle: yes → no",
         "Alice Smith",
       ],
-      ["10-01", "RSVPed: coming", "Vegetarian · Shuttle: yes · Staying: pinned", "Alice Smith"],
+      ["10-01", "RSVPed: coming", "Vegetarian · Shuttle: yes", "Alice Smith"],
+    ]);
+  });
+
+  it("includes the group's place and the guest's own, skipping saves that changed nothing", () => {
+    const at = (day: number) => `2026-10-0${day}T10:00:00.000Z`;
+    const entry = (
+      historyId: number,
+      scope: "group" | "own",
+      accommodation: { lat: number; lng: number } | null,
+      day: number,
+    ) => ({ historyId, scope, accommodation, updatedBy: 1, recordedAt: at(day) });
+    expect(
+      timeline({
+        accommodation: [
+          entry(1, "group", hotel, 1),
+          entry(2, "group", hotel, 2),
+          entry(3, "own", { lat: -34, lng: 22 }, 3),
+          entry(4, "group", { lat: -33.8, lng: 22.7 }, 4),
+          entry(5, "own", null, 5),
+          entry(6, "group", null, 6),
+        ],
+      }),
+    ).toEqual([
+      ["10-06", "Group's place removed", null, "Alice Smith"],
+      ["10-05", "Back with the group", null, "Alice Smith"],
+      ["10-04", "Group's place moved", null, "Alice Smith"],
+      ["10-03", "Staying somewhere else", null, "Alice Smith"],
+      ["10-01", "Group's place pinned", null, "Alice Smith"],
+    ]);
+  });
+});
+
+describe("change log", () => {
+  const rsvpChange = (overrides: Partial<RsvpChange>): RsvpChange => ({
+    recordedAt: "2026-10-02T10:00:00.000Z",
+    guestId: 2,
+    guest: "Bob Smith",
+    previousAnswerBy: "Bob Smith",
+    changedBy: "Alice Smith",
+    changedFields: "attending",
+    wasAttending: true,
+    nowAttending: false,
+    prevHistoryId: 1,
+    historyId: 2,
+    ...overrides,
+  });
+  const placeChange = (overrides: Partial<AccommodationChange>): AccommodationChange => ({
+    recordedAt: "2026-10-03T10:00:00.000Z",
+    groupId: 1,
+    guestId: null,
+    previousSetBy: "Bob Smith",
+    changedBy: "Bob Smith",
+    hadPlace: true,
+    hasPlace: true,
+    prevHistoryId: 1,
+    historyId: 2,
+    ...overrides,
+  });
+
+  it("merges RSVP and place changes, newest first, naming groups by their members", () => {
+    const log = changeLog(
+      [
+        rsvpChange({}),
+        rsvpChange({
+          recordedAt: "2026-10-01T09:00:00.000Z",
+          previousAnswerBy: null,
+          changedBy: "Bob Smith",
+          changedFields: "",
+          wasAttending: null,
+          nowAttending: true,
+          prevHistoryId: null,
+          historyId: 1,
+        }),
+      ],
+      [
+        placeChange({}),
+        placeChange({
+          recordedAt: "2026-10-01T10:00:00.000Z",
+          groupId: null,
+          guestId: 3,
+          hasPlace: false,
+          historyId: 3,
+        }),
+        placeChange({ groupId: 99, historyId: 4, recordedAt: "2026-10-04T10:00:00.000Z" }),
+      ],
+      [alice, bob, zoë, carl],
+    );
+    expect(
+      log.map(({ guestId, who, first, attendance, fields }) => [
+        guestId,
+        who,
+        first,
+        attendance,
+        fields,
+      ]),
+    ).toEqual([
+      [null, "Someone no longer listed", false, null, ["Group's place moved"]],
+      [1, "Alice & Bob Smith", false, null, ["Group's place moved"]],
+      [2, "Bob Smith", false, "not-coming", ["Attendance"]],
+      [3, "Zoë Ndlovu", false, null, ["Back with the group"]],
+      [2, "Bob Smith", true, "coming", ["First RSVP"]],
     ]);
   });
 });

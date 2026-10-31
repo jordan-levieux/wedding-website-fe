@@ -2,8 +2,8 @@ import { TestbedHarnessEnvironment } from "@angular/cdk/testing/testbed";
 import { TestBed } from "@angular/core/testing";
 import { MatChipListboxHarness } from "@angular/material/chips/testing";
 import { Router } from "@angular/router";
-import { RsvpChange } from "../../models/admin";
-import { adminApi, setupAdminPage } from "../admin-testing";
+import { AccommodationChange, RsvpChange } from "../../models/admin";
+import { adminApi, adminGuest, setupAdminPage } from "../admin-testing";
 import { ChangesPage } from "./changes-page";
 
 const change = (overrides: Partial<RsvpChange>): RsvpChange => ({
@@ -22,6 +22,15 @@ const change = (overrides: Partial<RsvpChange>): RsvpChange => ({
 
 // the API lists changes oldest first
 const CHANGES = [
+  change({
+    recordedAt: "2026-10-19T10:00:00.000Z",
+    previousAnswerBy: null,
+    changedBy: "Bob Smith",
+    changedFields: "",
+    wasAttending: null,
+    prevHistoryId: null,
+    historyId: 1,
+  }),
   change({}),
   change({
     historyId: 4,
@@ -40,6 +49,22 @@ const CHANGES = [
   }),
 ];
 
+const PLACE_CHANGES: AccommodationChange[] = [
+  {
+    recordedAt: "2026-10-23T10:00:00.000Z",
+    groupId: 1,
+    guestId: null,
+    previousSetBy: "Bob Smith",
+    changedBy: "Alice Smith",
+    hadPlace: true,
+    hasPlace: true,
+    prevHistoryId: 1,
+    historyId: 2,
+  },
+];
+
+const GUESTS = [adminGuest({}), adminGuest({ guestId: 2, name: "Bob" })];
+
 describe("ChangesPage", () => {
   const open = async (url: string) => {
     const page = await setupAdminPage(
@@ -48,6 +73,8 @@ describe("ChangesPage", () => {
       url,
     );
     page.http.expectOne(`${adminApi}/rsvp-changes`).flush(CHANGES);
+    page.http.expectOne(`${adminApi}/accommodation-changes`).flush(PLACE_CHANGES);
+    page.http.expectOne(`${adminApi}/guests`).flush(GUESTS);
     await page.settle();
     const rows = () =>
       [...page.element().querySelectorAll(".row")].map((row) =>
@@ -58,15 +85,28 @@ describe("ChangesPage", () => {
 
   it("lists changes newest first, calling out attendance and who changed it", async () => {
     const { rows } = await open("/admin/changes");
-    expect(rows().map((row) => row.match(/Bob Smith|Carl Botha/)![0])).toEqual([
+    expect(rows().map((row) => row.match(/Alice & Bob Smith|Bob Smith|Carl Botha/)![0])).toEqual([
+      "Alice & Bob Smith",
       "Carl Botha",
       "Bob Smith",
       "Bob Smith",
+      "Bob Smith",
     ]);
-    expect(rows()[0]).toContain("by Alice Smith · first answered by Carl Botha");
-    expect(rows()[1]).toContain("No longer coming");
-    expect(rows()[1]).toContain("Attendance");
-    expect(rows()[2]).not.toContain("first answered by");
+    expect(rows()[4]).toContain("Coming");
+    expect(rows()[4]).toContain("First RSVP");
+    expect(rows()[4]).not.toContain("before that");
+    expect(rows()[0]).toContain("Group's place moved");
+    expect(rows()[0]).toContain("by Alice Smith · before that by Bob Smith");
+    expect(rows()[1]).toContain("by Alice Smith · before that by Carl Botha");
+    expect(rows()[2]).toContain("No longer coming");
+    expect(rows()[2]).toContain("Attendance");
+    expect(rows()[3]).not.toContain("before that");
+  });
+
+  it("can hide first answers", async () => {
+    const { rows } = await open("/admin/changes?changes=true");
+    expect(rows()).toHaveLength(4);
+    expect(rows().join()).not.toContain("First RSVP");
   });
 
   it("filters from the URL and writes the filters back to it", async () => {

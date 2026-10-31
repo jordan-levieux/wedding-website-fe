@@ -27,12 +27,13 @@ import {
   nextGroupId,
   ROLE_LABELS,
 } from "../../models/admin";
-import { GroupGuest, RsvpInput } from "../../models/api";
+import { Coordinates, GroupGuest, RsvpInput } from "../../models/api";
 import { mapsLink } from "../../models/coordinates";
 import { DIETARY_LABELS, draftFor } from "../../models/rsvp";
 import { AdminService } from "../../services/adminService";
 import { apiErrorMessage } from "../../services/authService";
 import { loader } from "../../services/loader";
+import { PlaceEditor } from "../../rsvp-page/place-editor/place-editor";
 import { RsvpForm } from "../../rsvp-page/rsvp-form/rsvp-form";
 import {
   draftRoles,
@@ -59,6 +60,7 @@ const sameDraft = <T>(a: T, b: T) => JSON.stringify(a) === JSON.stringify(b);
     MatCardModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    PlaceEditor,
     RouterLink,
     RsvpForm,
     StatusPill,
@@ -129,6 +131,7 @@ export class GuestPage {
         name: guest.name,
         surname: guest.surname,
         rsvp: guest.rsvp,
+        ownAccommodation: guest.ownAccommodation,
       }
     );
   });
@@ -136,9 +139,9 @@ export class GuestPage {
     const guest = this.rsvpGuest();
     return guest && draftFor(guest, undefined).draft;
   });
-  protected venueAccommodation = computed(
-    () => this.guest()?.roles.includes("venue_accommodation") ?? false,
-  );
+  // the map only opens on request, since each load is billed
+  protected editingPlace = signal<"group" | "own" | null>(null);
+  protected savingPlace = signal<"group" | "own" | null>(null);
 
   constructor() {
     this.guests.reload();
@@ -146,6 +149,7 @@ export class GuestPage {
       this.guestId();
       untracked(() => {
         this.editingRsvp.set(false);
+        this.editingPlace.set(null);
         this.confirming.set(null);
         this.history.reset();
         this.history.reload();
@@ -196,6 +200,29 @@ export class GuestPage {
         this.snackBar.open(apiErrorMessage(error, "We couldn't save the RSVP"), "OK"),
       )
       .finally(() => this.savingRsvp.set(false));
+  }
+
+  protected savePlace(scope: "group" | "own", place: Coordinates | null) {
+    const guest = this.guest()!;
+    this.savingPlace.set(scope);
+    (scope === "group"
+      ? this.adminService.setGroupAccommodation(guest.groupId, place)
+      : this.adminService.setOwnAccommodation(guest.guestId, place)
+    )
+      .then(() => {
+        this.editingPlace.set(null);
+        const done = place
+          ? "Location saved"
+          : scope === "own"
+            ? "Back with the group"
+            : "Location removed";
+        this.snackBar.open(done, undefined, { duration: 3000 });
+        this.history.reload();
+      })
+      .catch((error: unknown) =>
+        this.snackBar.open(apiErrorMessage(error, "We couldn't save the location"), "OK"),
+      )
+      .finally(() => this.savingPlace.set(null));
   }
 
   protected unlinkGoogle() {

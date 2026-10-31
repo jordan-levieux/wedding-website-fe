@@ -43,7 +43,6 @@
           <app-rsvp-form
             [guest]="rsvpGuest"
             [draft]="rsvpDraft()!"
-            [venueAccommodation]="venueAccommodation()"
             [saving]="savingRsvp()"
             (save)="saveRsvp($event)"
           />
@@ -67,14 +66,6 @@
                 <dd [class.missing]="rsvp.shuttle === null">
                   {{ rsvp.shuttle === null ? "Not sure" : rsvp.shuttle ? "Yes" : "No" }}
                 </dd>
-                <dt>Staying</dt>
-                <dd [class.missing]="!rsvp.accommodation">
-                  @if (rsvp.accommodation; as location) {
-                    <a [href]="mapsLink(location)" target="_blank" rel="noopener">On the map</a>
-                  } @else {
-                    No answer
-                  }
-                </dd>
               }
             </dl>
             <p class="meta muted">
@@ -92,6 +83,68 @@
               </button>
             </div>
           }
+        }
+      </mat-card>
+
+      <mat-card appearance="outlined" class="card staying">
+        <h2>Staying</h2>
+        <section class="place">
+          <h3>{{ groupMates().length ? "Their group's place" : "Their place" }}</h3>
+          @if (guest.groupAccommodation || editingPlace() === "group") {
+            <app-place-editor
+              [place]="guest.groupAccommodation"
+              [startEditing]="editingPlace() === 'group'"
+              [disabled]="!canEdit()"
+              [saving]="savingPlace() === 'group'"
+              (save)="savePlace('group', $event)"
+              (cancelled)="editingPlace.set(null)"
+            />
+          } @else {
+            <p class="muted">Not pinned yet.</p>
+            @if (canEdit()) {
+              <div class="actions">
+                <button mat-stroked-button type="button" (click)="editingPlace.set('group')">
+                  <mat-icon>add_location_alt</mat-icon> Pin a place
+                </button>
+              </div>
+            }
+          }
+        </section>
+        @if (groupMates().length || guest.ownAccommodation) {
+          <section class="place">
+            <h3>Their own place</h3>
+            @if (guest.ownAccommodation || editingPlace() === "own") {
+              <app-place-editor
+                [place]="guest.ownAccommodation"
+                [startEditing]="editingPlace() === 'own'"
+                [disabled]="!canEdit()"
+                [saving]="savingPlace() === 'own'"
+                (save)="savePlace('own', $event)"
+                (cancelled)="editingPlace.set(null)"
+              />
+              @if (canEdit() && guest.ownAccommodation && editingPlace() !== "own") {
+                <div class="actions">
+                  <button
+                    mat-button
+                    type="button"
+                    [disabled]="savingPlace() === 'own'"
+                    (click)="savePlace('own', null)"
+                  >
+                    Back with the group
+                  </button>
+                </div>
+              }
+            } @else {
+              <p class="muted">Staying with their group.</p>
+              @if (canEdit()) {
+                <div class="actions">
+                  <button mat-button type="button" (click)="editingPlace.set('own')">
+                    <mat-icon>add_location_alt</mat-icon> Staying somewhere else
+                  </button>
+                </div>
+              }
+            }
+          </section>
         }
       </mat-card>
 
