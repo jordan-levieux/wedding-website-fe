@@ -1,0 +1,86 @@
+@use "@angular/material" as mat;
+@use "../photo-page";
+
+@include photo-page.photo-page;
+
+.section {
+  p {
+    font: var(--mat-sys-body-large);
+    line-height: 1.7;
+  }
+}
+
+.subtitle {
+  color: var(--mat-sys-inverse-primary);
+  font: var(--mat-sys-headline-small);
+  font-style: italic;
+}
+
+// the one line worth reading even if you skim the rest
+.highlight {
+  border-inline-start: 3px solid var(--mat-sys-tertiary-fixed-dim);
+  font: var(--mat-sys-headline-small);
+  padding-inline-start: 1rem;
+}
+
+// light on the dark panel, like the text around it
+.banking {
+  @include mat.expansion-overrides(
+    (
+      container-background-color: rgb(255 255 255 / 0.12),
+      container-text-color: #fff,
+      header-text-color: #fff,
+      header-indicator-color: #fff,
+      header-hover-state-layer-color: rgb(255 255 255 / 0.08),
+      header-focus-state-layer-color: rgb(255 255 255 / 0.12),
+    )
+  );
+  @include mat.icon-button-overrides(
+    (
+      icon-color: #fff,
+    )
+  );
+
+  mat-panel-title {
+    align-items: center;
+    display: flex;
+    gap: 0.75rem;
+  }
+}
+
+.bank-rows {
+  display: grid;
+  margin: 0;
+}
+
+.bank-row {
+  align-items: center;
+  display: grid;
+  gap: 0 1rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding-block: 0.375rem;
+
+  & + & {
+    border-top: 1px solid rgb(255 255 255 / 0.2);
+  }
+
+  dt {
+    color: rgb(255 255 255 / 0.75);
+    font: var(--mat-sys-label-medium);
+    grid-column: 1;
+  }
+
+  // full-height figures, so account numbers don't read as rows of letter o's
+  dd {
+    font: var(--mat-sys-body-large);
+    font-variant-numeric: lining-nums tabular-nums;
+    grid-column: 1;
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  button {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+}

@@ -1,0 +1,69 @@
+// A photo fixed behind the whole page, with the title over it and the content on soft panels that
+// scroll over the top. A fixed element rather than background-attachment, which iOS Safari ignores.
+@mixin photo-page {
+  :host {
+    align-content: start;
+    display: grid;
+    isolation: isolate;
+  }
+
+  .backdrop {
+    inset: 0;
+    position: fixed;
+    z-index: -1;
+
+    img {
+      object-fit: cover;
+    }
+
+    // dims the photo a little more towards the bottom, where the panels start
+    &::after {
+      background: linear-gradient(to bottom, rgb(20 24 16 / 0.15), rgb(20 24 16 / 0.5));
+      content: "";
+      inset: 0;
+      position: absolute;
+    }
+  }
+
+  // fills the first screen below the top bar, so only the photo, the title and the arrow show at first
+  .hero {
+    box-sizing: border-box;
+    display: grid;
+    gap: 1.5rem;
+    grid-template-rows: 1fr auto;
+    min-height: calc(100svh - var(--top-bar-height, 0px));
+    padding: 2rem max(1.25rem, env(safe-area-inset-left), calc((100% - 46rem) / 2 + 1rem))
+      max(1.25rem, env(safe-area-inset-bottom));
+  }
+
+  .hero-text {
+    align-content: end;
+    color: #fff;
+    display: grid;
+    gap: 0.5rem;
+    text-shadow: 0 1px 12px rgb(0 0 0 / 0.45);
+
+    h1 {
+      font: var(--mat-sys-display-medium);
+      font-size: clamp(2.5rem, 8vw, 3.75rem);
+      line-height: 1.05;
+    }
+  }
+
+  // stops below the sticky top bar when the arrow scrolls to it
+  .page {
+    scroll-margin-top: var(--top-bar-height, 0px);
+  }
+
+  .panel {
+    // see-through enough to show the photo; the blur and shadow keep the white text readable over it
+    backdrop-filter: blur(16px);
+    background: rgb(0 0 0 / 0.5);
+    border-radius: 24px;
+    color: #fff;
+    text-shadow: 0 1px 2px rgb(0 0 0 / 0.4);
+    display: grid;
+    gap: 1rem;
+    padding: clamp(1.25rem, 4vw, 2rem);
+  }
+}

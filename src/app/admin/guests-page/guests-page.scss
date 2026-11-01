@@ -44,10 +44,10 @@
   padding: 1.25rem;
 }
 
-// big numbers stay in the plain sans, not the display serif
+// even-height figures, rather than the serif's old-style ones that rise and fall
 .hero-value,
 .value {
-  font-family: var(--mat-sys-body-large-font);
+  font-variant-numeric: lining-nums tabular-nums;
   font-weight: 600;
   line-height: 1;
 }

@@ -1,0 +1,102 @@
+<div class="backdrop" aria-hidden="true">
+  <img ngSrc="back-grounds/our-story.jpg" fill priority alt="" />
+</div>
+
+<section class="hero">
+  <div class="hero-text">
+    <h1>The details</h1>
+  </div>
+  <app-scroll-cue [target]="content" />
+</section>
+
+<main #content class="page">
+  <section class="panel section" aria-labelledby="theme">
+    <h2 id="theme">Theme</h2>
+    <p>
+      South Africa has a way of changing around you. Mountains fall into deep green forests.
+      Sunlight breaks through leaves and turns everything beneath them gold. Ferns, mosses and
+      mushrooms gather quietly on the forest floor, while further south the landscape opens into
+      fynbos, where some of the most extraordinary flowers in the world grow from seemingly
+      impossible places. Travel a little further still and even the dry earth comes alive. In
+      Namaqualand, an arid landscape can suddenly become a sea of flowers, painted in orange,
+      yellow, white, pink and violet.
+    </p>
+    <p>
+      That sense of wonder is something we both love: the idea that beauty is rarely only one thing.
+      It can be quiet or exuberant, delicate or strange, perfectly ordered or completely wild. Much
+      like love, perhaps.
+    </p>
+    <p>
+      And as our own story has taken us from climbing together as friends to mountains on the other
+      side of the world, rainy bicycle rides, far too many photographs, and eventually two
+      engagement rings instead of one, we have found that the best adventures are the ones you
+      share.
+    </p>
+  </section>
+
+  <section class="panel section" aria-labelledby="dress-code">
+    <h2 id="dress-code">Dress code</h2>
+    <p class="subtitle">The Artistry of the Forest Floor</p>
+    <p>
+      Think moss and mushrooms. Ferns unfurling between stones. Tiny flowers hidden amongst leaves.
+      Bark, berries, lichen and seedpods. Shafts of light falling through trees. The deep greens of
+      the forest, the burgundy of autumn leaves, the warm ochres of earth and fungi, and the
+      unexpected flashes of blue, orange, yellow and pink found in South Africa's extraordinary
+      flora.
+    </p>
+    <p>
+      You’ll see some of those colours woven through the photographs and botanical illustrations
+      across this website. Consider them inspiration rather than instruction.
+    </p>
+    <p>We would love our guests to add to the landscape.</p>
+    <p>
+      Our dress code is formal, but colour is wholeheartedly welcome. Rich jewel tones, earthy
+      shades, soft botanical colours and bright wildflower hues all belong here. There is no need to
+      disappear into beige, black or muted wedding neutrals unless that is what makes you happiest.
+    </p>
+    <p class="highlight">
+      Wear something beautiful. Wear something joyful. Wear a colour you love.
+    </p>
+    <p>
+      Imagine all of us together beneath the trees, like one wonderfully dressed, slightly unruly
+      forest floor.
+    </p>
+    <p>We cannot wait to see you there.</p>
+  </section>
+
+  <section class="panel section" aria-labelledby="gifts">
+    <h2 id="gifts">Gifts</h2>
+    <p>
+      Your presence is the best gift we could ask for. A heartfelt letter would be wonderful and if
+      you’re determined to give us something anyway, we’d be very grateful for a contribution
+      towards our honeymoon.
+    </p>
+    @if (bankingDetails.length) {
+      <mat-expansion-panel class="banking">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon>account_balance</mat-icon>
+            Banking details
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+        <dl class="bank-rows">
+          @for (row of bankingDetails; track row.label) {
+            <div class="bank-row">
+              <dt>{{ row.label }}</dt>
+              <dd>{{ row.value }}</dd>
+              <button
+                mat-icon-button
+                type="button"
+                [attr.aria-label]="'Copy ' + row.label.toLowerCase()"
+                [title]="'Copy ' + row.label.toLowerCase()"
+                (click)="copy(row.label, row.value)"
+              >
+                <mat-icon>content_copy</mat-icon>
+              </button>
+            </div>
+          }
+        </dl>
+      </mat-expansion-panel>
+    }
+  </section>
+</main>

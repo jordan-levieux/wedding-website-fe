@@ -15,7 +15,8 @@
 .top-bar {
   align-items: center;
   backdrop-filter: blur(12px);
-  background: color-mix(in srgb, var(--mat-sys-surface) 88%, transparent);
+  // solid enough to keep the tabs readable over text, even where the blur isn't supported
+  background: color-mix(in srgb, var(--mat-sys-surface) 95%, transparent);
   border-bottom: 1px solid var(--mat-sys-outline-variant);
   column-gap: 1rem;
   display: grid;

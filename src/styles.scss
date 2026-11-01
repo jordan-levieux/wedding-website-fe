@@ -1,6 +1,58 @@
 @use "@angular/material" as mat;
 @use "./theme-colors" as theme;
 
+$font: "'Cormorant Garamond', Georgia, serif";
+
+// Cormorant's letters are small for their size, so the text-sized steps of the type scale are a
+// little larger than Material's defaults; display and headline sizes already suit it.
+$type-scale: (
+  body-large: (
+    1.125rem,
+    1.6rem,
+    500,
+  ),
+  body-medium: (
+    1rem,
+    1.45rem,
+    500,
+  ),
+  body-small: (
+    0.875rem,
+    1.25rem,
+    500,
+  ),
+  label-large: (
+    1rem,
+    1.4rem,
+    600,
+  ),
+  label-medium: (
+    0.875rem,
+    1.2rem,
+    600,
+  ),
+  label-small: (
+    0.8125rem,
+    1.1rem,
+    600,
+  ),
+  title-large: (
+    1.5rem,
+    1.9rem,
+    500,
+  ),
+  title-medium: (
+    1.125rem,
+    1.5rem,
+    600,
+  ),
+  title-small: (
+    1rem,
+    1.35rem,
+    600,
+  ),
+);
+
 html {
   color-scheme: light;
   height: 100%;
@@ -12,15 +64,29 @@ html {
         tertiary: theme.$tertiary-palette,
       ),
       typography: (
-        plain-family: "Inter, Roboto, system-ui, sans-serif",
-        brand-family: "'Cormorant Garamond', Georgia, serif",
-        bold-weight: 600,
-        medium-weight: 500,
-        regular-weight: 400,
+        plain-family: $font,
+        brand-family: $font,
+        bold-weight: 700,
+        medium-weight: 600,
+        regular-weight: 500,
       ),
       density: 0,
     )
   );
+
+  @each $level, $values in $type-scale {
+    $size: nth($values, 1);
+    $line-height: nth($values, 2);
+    $weight: nth($values, 3);
+    @include mat.theme-overrides(
+      (
+        $level: #{$weight} #{$size}/#{$line-height} #{$font},
+        #{$level}-size: $size,
+        #{$level}-line-height: $line-height,
+        #{$level}-weight: $weight,
+      )
+    );
+  }
 
   @include mat.card-overrides(
     (
@@ -95,9 +161,7 @@ a {
 
 .eyebrow {
   color: var(--mat-sys-primary);
-  font: var(--mat-sys-label-large);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font: var(--mat-sys-title-medium);
 }
 
 .muted {

@@ -5,3 +5,4 @@ public/back-grounds/
 scripts/
 .firebase/
 src/environments/maps-key.ts
+src/environments/banking-details.ts

@@ -6,6 +6,10 @@ This project was generated using [Angular CLI](https://github.com/angular/angula
 
 The Maps key is kept out of git. Copy `src/environments/maps-key.example.ts` to `src/environments/maps-key.ts` and fill it in; the app won't build without it.
 
+## Banking details
+
+The banking details on the Info page are kept out of git the same way: copy `src/environments/banking-details.example.ts` to `src/environments/banking-details.ts` and fill it in. They still end up in the deployed JavaScript, so anyone who opens the site can find them.
+
 ## Development server
 
 To start a local development server, run:

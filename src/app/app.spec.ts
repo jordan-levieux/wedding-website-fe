@@ -1,9 +1,12 @@
-import { signal } from "@angular/core";
+import { Component, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
-import { provideRouter } from "@angular/router";
+import { provideRouter, Router } from "@angular/router";
 import { App } from "./app";
 import { AuthService } from "./services/authService";
 import { GroupService } from "./services/groupService";
+
+@Component({ template: "" })
+class Blank {}
 
 describe("App tabs", () => {
   const render = async (
@@ -13,7 +16,10 @@ describe("App tabs", () => {
   ) => {
     TestBed.configureTestingModule({
       providers: [
-        provideRouter([]),
+        provideRouter([
+          { path: "home", component: Blank },
+          { path: "info", component: Blank },
+        ]),
         { provide: AuthService, useValue: { accessToken: signal("token") } },
         {
           provide: GroupService,
@@ -55,12 +61,24 @@ describe("App tabs", () => {
   it("shows the admin tab only to admins and viewers", async () => {
     const tabs = (element: HTMLElement) =>
       [...element.querySelectorAll("[mat-tab-link]")].map((tab) => tab.textContent?.trim());
-    expect(tabs(await render({ unanswered: 0, incomplete: 0 }))).toEqual(["Home", "RSVP"]);
+    expect(tabs(await render({ unanswered: 0, incomplete: 0 }))).toEqual(["Home", "RSVP", "Info"]);
     TestBed.resetTestingModule();
     expect(tabs(await render({ unanswered: 0, incomplete: 0 }, true, true))).toEqual([
       "Home",
       "RSVP",
+      "Info",
       "Admin",
     ]);
+  });
+
+  it("scrolls back to the top on moving to another page, but not for a query change", async () => {
+    await render({ unanswered: 0, incomplete: 0 });
+    const scrollTo = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+    const router = TestBed.inject(Router);
+    await router.navigateByUrl("/home");
+    await router.navigateByUrl("/home?q=x");
+    expect(scrollTo).not.toHaveBeenCalled();
+    await router.navigateByUrl("/info");
+    expect(scrollTo).toHaveBeenCalledWith(0, 0);
   });
 });
