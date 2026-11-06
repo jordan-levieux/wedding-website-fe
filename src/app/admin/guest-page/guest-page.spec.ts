@@ -109,9 +109,7 @@ describe("GuestPage", () => {
   it("lets admins answer for a guest", async () => {
     const { loader, http } = await open(["admin"], 3);
     await (await loader.getHarness(MatButtonHarness.with({ text: /Answer for Carl/ }))).click();
-    await (
-      await loader.getHarness(MatButtonToggleHarness.with({ text: "Regretfully decline" }))
-    ).check();
+    await (await loader.getHarness(MatButtonToggleHarness.with({ text: "Won't make it" }))).check();
     await (await loader.getHarness(MatButtonHarness.with({ text: /Send RSVP/ }))).click();
 
     const request = http.expectOne(`${adminApi}/rsvps`);

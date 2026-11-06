@@ -1,8 +1,11 @@
+@use "../../photo-page";
+
 :host {
   display: grid;
 }
 
 .card {
+  @include photo-page.glass;
   display: grid;
 }
 

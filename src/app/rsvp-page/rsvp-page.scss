@@ -1,6 +1,30 @@
-:host {
-  display: grid;
-  align-content: start;
+@use "@angular/material" as mat;
+@use "../photo-page";
+
+@include photo-page.backdrop;
+
+.page {
+  @include mat.card-overrides(
+    (
+      outlined-outline-color: transparent,
+    )
+  );
+}
+
+// the content starts at the top here, over the brightest part of the photo, so dim it evenly
+.backdrop::after {
+  background: rgb(20 24 16 / 0.45);
+}
+
+// the text that sits straight on the photo rather than on a card
+.intro,
+.group-intro {
+  color: #fff;
+  text-shadow: 0 1px 12px rgb(0 0 0 / 0.5);
+
+  .muted {
+    color: rgb(255 255 255 / 0.85);
+  }
 }
 
 .intro {
@@ -15,9 +39,8 @@
 }
 
 .notice {
+  @include photo-page.glass;
   align-items: start;
-  background: var(--mat-sys-surface-container-high);
-  border-radius: 16px;
   display: grid;
   gap: 0.75rem;
   grid-template-columns: auto 1fr;
@@ -25,6 +48,7 @@
 }
 
 .card {
+  @include photo-page.glass;
   display: grid;
 }
 
@@ -79,6 +103,12 @@
 .accordion {
   display: grid;
   gap: 0.75rem;
+
+  mat-expansion-panel {
+    backdrop-filter: blur(16px);
+    background: rgb(0 0 0 / 0.5);
+    box-shadow: none;
+  }
 }
 
 // lets the header grow when the name and status wrap onto two lines on narrow phones

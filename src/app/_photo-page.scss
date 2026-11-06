@@ -1,6 +1,6 @@
-// A photo fixed behind the whole page, with the title over it and the content on soft panels that
-// scroll over the top. A fixed element rather than background-attachment, which iOS Safari ignores.
-@mixin photo-page {
+// A photo fixed behind the whole page. A fixed element rather than background-attachment, which
+// iOS Safari ignores.
+@mixin backdrop {
   :host {
     align-content: start;
     display: grid;
@@ -24,6 +24,19 @@
       position: absolute;
     }
   }
+}
+
+// see-through enough to show the photo; the blur keeps the white text readable over it
+@mixin glass {
+  backdrop-filter: blur(16px);
+  background: rgb(0 0 0 / 0.5);
+  border-radius: 24px;
+  color: #fff;
+}
+
+// The photo with the title over it, and the content on soft panels that scroll over the top
+@mixin photo-page {
+  @include backdrop;
 
   // fills the first screen below the top bar, so only the photo, the title and the arrow show at first
   .hero {
@@ -56,11 +69,7 @@
   }
 
   .panel {
-    // see-through enough to show the photo; the blur and shadow keep the white text readable over it
-    backdrop-filter: blur(16px);
-    background: rgb(0 0 0 / 0.5);
-    border-radius: 24px;
-    color: #fff;
+    @include glass;
     text-shadow: 0 1px 2px rgb(0 0 0 / 0.4);
     display: grid;
     gap: 1rem;

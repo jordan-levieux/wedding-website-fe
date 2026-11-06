@@ -32,6 +32,7 @@ describe("RsvpForm", () => {
       draft?: RsvpDraft;
       prefilled?: PrefilledField[];
       closed?: boolean;
+      isSelf?: boolean;
     } = {},
   ) => {
     fixture = TestBed.createComponent(RsvpForm);
@@ -39,6 +40,7 @@ describe("RsvpForm", () => {
     fixture.componentRef.setInput("draft", options.draft ?? blank);
     fixture.componentRef.setInput("prefilled", options.prefilled ?? []);
     fixture.componentRef.setInput("closed", options.closed ?? false);
+    fixture.componentRef.setInput("isSelf", options.isSelf ?? false);
     saved = [];
     fixture.componentInstance.save.subscribe((input) => saved.push(input));
     loader = TestbedHarnessEnvironment.loader(fixture);
@@ -61,6 +63,15 @@ describe("RsvpForm", () => {
     await fixture.whenStable();
   };
 
+  it("words the answers for whoever it's for", async () => {
+    const labels = async () =>
+      Promise.all((await (await choice(0)).getToggles()).map((toggle) => toggle.getText()));
+    await setup();
+    expect(await labels()).toEqual(["Bob's in", "Won't make it"]);
+    await setup({ isSelf: true });
+    expect(await labels()).toEqual(["I'm in", "Won't make it"]);
+  });
+
   it("doesn't send until they say whether they're coming", async () => {
     await setup();
     await send();
@@ -70,7 +81,7 @@ describe("RsvpForm", () => {
 
   it("sends just the answer for someone who isn't coming", async () => {
     await setup();
-    await choose(0, "Regretfully decline");
+    await choose(0, "Won't make it");
     await send();
     expect(saved).toEqual([
       {
@@ -85,7 +96,7 @@ describe("RsvpForm", () => {
 
   it("needs a dietary answer from someone coming, and details for 'other'", async () => {
     await setup();
-    await choose(0, "Joyfully accept");
+    await choose(0, "Bob's in");
     await send();
     expect(saved).toEqual([]);
     expect(text()).toContain("Please choose one");

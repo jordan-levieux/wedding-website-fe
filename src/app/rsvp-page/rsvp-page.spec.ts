@@ -80,7 +80,7 @@ describe("RsvpPage", () => {
   it("once they've answered, lists the group with the next person to answer opened", async () => {
     await setup(makeGroup());
     expect(text()).toContain("You're coming, hooray!");
-    expect(text()).toContain("Taking the shuttle");
+    expect(text()).toContain("Interested in a shuttle");
     expect(text()).toContain("1 of 3 in your group have replied");
     const panels = await loader.getAllHarnesses(MatExpansionPanelHarness);
     const titles = await Promise.all(panels.map((panel) => panel.getTitle()));
@@ -94,7 +94,7 @@ describe("RsvpPage", () => {
     const bobPanel = (await loader.getAllHarnesses(MatExpansionPanelHarness))[0]!;
     const [accept] = await (
       await bobPanel.getHarness(MatButtonToggleGroupHarness)
-    ).getToggles({ text: "Joyfully accept" });
+    ).getToggles({ text: "Bob's in" });
     await accept!.check();
     await (await bobPanel.getHarness(MatChipListboxHarness)).selectChips({ text: "Vegetarian" });
 

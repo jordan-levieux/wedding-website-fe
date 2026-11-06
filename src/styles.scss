@@ -1,4 +1,5 @@
 @use "@angular/material" as mat;
+@use "sass:list";
 @use "./theme-colors" as theme;
 
 $font: "'Cormorant Garamond', Georgia, serif";
@@ -53,8 +54,10 @@ $type-scale: (
   ),
 );
 
+// dark throughout, so the photo pages, the top bar and the admin pages all read light-on-dark
 html {
-  color-scheme: light;
+  --mat-sys-on-surface: #fff;
+  color-scheme: dark;
   height: 100%;
 
   @include mat.theme(
@@ -75,9 +78,9 @@ html {
   );
 
   @each $level, $values in $type-scale {
-    $size: nth($values, 1);
-    $line-height: nth($values, 2);
-    $weight: nth($values, 3);
+    $size: list.nth($values, 1);
+    $line-height: list.nth($values, 2);
+    $weight: list.nth($values, 3);
     @include mat.theme-overrides(
       (
         $level: #{$weight} #{$size}/#{$line-height} #{$font},

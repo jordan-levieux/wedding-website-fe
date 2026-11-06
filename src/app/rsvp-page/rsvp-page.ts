@@ -1,4 +1,4 @@
-import { DatePipe } from "@angular/common";
+import { DatePipe, NgOptimizedImage } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
@@ -31,6 +31,7 @@ const STATUS_LABELS: Record<GuestStatus, { label: string; icon: string }> = {
     MatExpansionModule,
     MatIconModule,
     MatProgressBarModule,
+    NgOptimizedImage,
     RsvpForm,
     StayingCard,
   ],
@@ -79,9 +80,9 @@ export class RsvpPage {
 
   protected shuttleText(rsvp: Rsvp): string {
     if (rsvp.shuttle === null) {
-      return "Not sure about the shuttle yet";
+      return "Not sure about a shuttle yet";
     }
-    return rsvp.shuttle ? "Taking the shuttle" : "Not taking the shuttle";
+    return rsvp.shuttle ? "Interested in a shuttle" : "No shuttle needed";
   }
 
   protected answeredBy(guest: GroupGuest): string | null {

@@ -4,8 +4,10 @@
       {{ isSelf() ? "Will you be joining us?" : "Will " + guest().name + " be joining us?" }}
     </h3>
     <mat-button-toggle-group [formField]="rsvpForm.attending" class="choice">
-      <mat-button-toggle value="yes">Joyfully accept</mat-button-toggle>
-      <mat-button-toggle value="no">Regretfully decline</mat-button-toggle>
+      <mat-button-toggle value="yes">{{
+        isSelf() ? "I'm in" : guest().name + "'s in"
+      }}</mat-button-toggle>
+      <mat-button-toggle value="no">Won't make it</mat-button-toggle>
     </mat-button-toggle-group>
     @if (errorOf(rsvpForm.attending); as error) {
       <p class="error" role="alert">{{ error }}</p>
@@ -46,10 +48,18 @@
       }
     </div>
 
-    <div class="question" role="group" [attr.aria-labelledby]="id() + '-shuttle'">
+    <div
+      class="question"
+      role="group"
+      [attr.aria-labelledby]="id() + '-shuttle'"
+      [attr.aria-describedby]="id() + '-shuttle-hint'"
+    >
       <h3 [id]="id() + '-shuttle'">
-        Would {{ isSelf() ? "you" : guest().name }} like a seat on the shuttle?
+        Would {{ isSelf() ? "you" : guest().name }} be interested in a shuttle?
       </h3>
+      <p class="hint" [id]="id() + '-shuttle-hint'">
+        We're hoping to arrange one and will let you know closer to the day.
+      </p>
       <mat-button-toggle-group [formField]="rsvpForm.shuttle" class="choice">
         <mat-button-toggle value="yes">Yes please</mat-button-toggle>
         <mat-button-toggle value="no">No thanks</mat-button-toggle>

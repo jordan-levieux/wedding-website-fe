@@ -37,6 +37,7 @@ export class LocationPicker {
   protected zoom = signal(11);
   protected options = computed<google.maps.MapOptions>(() => ({
     mapId: environment.googleMapsMapId,
+    colorScheme: "DARK",
     disableDefaultUI: true,
     zoomControl: true,
     fullscreenControl: true,

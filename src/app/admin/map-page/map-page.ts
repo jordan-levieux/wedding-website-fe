@@ -97,6 +97,7 @@ export class MapPage {
   protected venuePin = computed(() => pin("Venue", "--mat-sys-tertiary", "--mat-sys-on-tertiary"));
   protected readonly mapOptions: google.maps.MapOptions = {
     mapId: environment.googleMapsMapId,
+    colorScheme: "DARK",
     disableDefaultUI: true,
     zoomControl: true,
     fullscreenControl: true,
