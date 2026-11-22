@@ -15,6 +15,8 @@ export type Rsvp = {
   dietary: DietaryOption | null;
   dietaryOtherDetails: string | null;
   shuttle: boolean | null;
+  braai: boolean | null;
+  brunch: boolean | null;
   respondedBy: number;
   respondedAt: string;
 };
@@ -43,6 +45,8 @@ export type RsvpInput = {
   dietary: DietaryOption | null;
   dietaryOtherDetails: string | null;
   shuttle: boolean | null;
+  braai: boolean | null;
+  brunch: boolean | null;
 };
 
 export type ApiError = {

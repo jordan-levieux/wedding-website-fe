@@ -62,17 +62,19 @@
           }
         </dl>
       </mat-card>
-      <mat-card appearance="outlined" class="counts">
-        <h2>Shuttle</h2>
-        <dl>
-          <dt>Yes</dt>
-          <dd>{{ totals.shuttle.yes }}</dd>
-          <dt>No</dt>
-          <dd>{{ totals.shuttle.no }}</dd>
-          <dt>No answer</dt>
-          <dd>{{ totals.shuttle.unanswered }}</dd>
-        </dl>
-      </mat-card>
+      @for (field of optionalAnswers; track field) {
+        <mat-card appearance="outlined" class="counts">
+          <h2>{{ optionalAnswerLabels[field] }}</h2>
+          <dl>
+            <dt>Yes</dt>
+            <dd>{{ totals.answers[field].yes }}</dd>
+            <dt>No</dt>
+            <dd>{{ totals.answers[field].no }}</dd>
+            <dt>No answer</dt>
+            <dd>{{ totals.answers[field].unanswered }}</dd>
+          </dl>
+        </mat-card>
+      }
       <mat-card appearance="outlined" class="counts">
         <h2>Staying</h2>
         <dl>
@@ -180,12 +182,14 @@
                       }}
                     </dd>
                   </div>
-                  <div>
-                    <dt>Shuttle</dt>
-                    <dd [class.missing]="rsvp.shuttle === null">
-                      {{ rsvp.shuttle === null ? "No answer" : rsvp.shuttle ? "Yes" : "No" }}
-                    </dd>
-                  </div>
+                  @for (field of optionalAnswers; track field) {
+                    <div>
+                      <dt>{{ optionalAnswerLabels[field] }}</dt>
+                      <dd [class.missing]="rsvp[field] === null">
+                        {{ rsvp[field] === null ? "No answer" : maybeText(rsvp[field]) }}
+                      </dd>
+                    </div>
+                  }
                   <div>
                     <dt>Staying</dt>
                     <dd [class.missing]="!stayingAt(guest)">

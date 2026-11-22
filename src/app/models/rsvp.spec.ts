@@ -6,6 +6,8 @@ const rsvp = (overrides: Partial<Rsvp> = {}): Rsvp => ({
   dietary: "none",
   dietaryOtherDetails: null,
   shuttle: true,
+  braai: true,
+  brunch: false,
   respondedBy: 1,
   respondedAt: "2026-10-24T10:00:00.000Z",
   ...overrides,
@@ -23,18 +25,28 @@ const guest = (
 });
 
 describe("draftFor", () => {
-  it("copies the caller's shuttle answer to someone who hasn't answered", () => {
+  it("copies the caller's shuttle, braai and brunch answers to someone who hasn't answered", () => {
     const self = guest(1, rsvp());
     expect(draftFor(guest(2), self)).toEqual({
-      draft: { attending: null, dietary: null, dietaryOtherDetails: "", shuttle: "yes" },
-      prefilled: ["shuttle"],
+      draft: {
+        attending: null,
+        dietary: null,
+        dietaryOtherDetails: "",
+        shuttle: "yes",
+        braai: "yes",
+        brunch: "no",
+      },
+      prefilled: ["shuttle", "braai", "brunch"],
     });
   });
 
-  it("keeps someone else's own shuttle answer", () => {
-    const { draft, prefilled } = draftFor(guest(2, rsvp({ shuttle: false })), guest(1, rsvp()));
-    expect(draft.shuttle).toBe("no");
-    expect(prefilled).toEqual([]);
+  it("keeps someone else's own answers and fills in only the ones they left open", () => {
+    const { draft, prefilled } = draftFor(
+      guest(2, rsvp({ shuttle: false, braai: null, brunch: true })),
+      guest(1, rsvp()),
+    );
+    expect(draft).toEqual(expect.objectContaining({ shuttle: "no", braai: "yes", brunch: "yes" }));
+    expect(prefilled).toEqual(["braai"]);
   });
 
   it("copies nothing from a caller who isn't coming, or into their own form", () => {
@@ -52,6 +64,8 @@ describe("toRsvpInput", () => {
         dietary: "other",
         dietaryOtherDetails: "nuts",
         shuttle: "yes",
+        braai: "yes",
+        brunch: "yes",
       }),
     ).toEqual({
       guestId: 2,
@@ -59,16 +73,20 @@ describe("toRsvpInput", () => {
       dietary: null,
       dietaryOtherDetails: null,
       shuttle: null,
+      braai: null,
+      brunch: null,
     });
   });
 
-  it("turns 'not sure' into no shuttle answer and keeps details only for 'other'", () => {
+  it("turns 'not sure' into no answer and keeps details only for 'other'", () => {
     expect(
       toRsvpInput(2, {
         attending: "yes",
         dietary: "vegetarian",
         dietaryOtherDetails: "left over",
         shuttle: "unsure",
+        braai: "no",
+        brunch: "unsure",
       }),
     ).toEqual({
       guestId: 2,
@@ -76,6 +94,8 @@ describe("toRsvpInput", () => {
       dietary: "vegetarian",
       dietaryOtherDetails: null,
       shuttle: null,
+      braai: false,
+      brunch: null,
     });
   });
 });
@@ -99,7 +119,7 @@ describe("guestStatus and rsvpAttention", () => {
       guests: [
         guest(1, rsvp()),
         guest(2),
-        guest(3, rsvp({ shuttle: null })),
+        guest(3, rsvp({ brunch: null })),
         guest(4, rsvp({ attending: false, shuttle: null, dietary: null })),
       ],
     };

@@ -7,6 +7,8 @@ const coming: Rsvp = {
   dietary: "vegetarian",
   dietaryOtherDetails: null,
   shuttle: true,
+  braai: true,
+  brunch: false,
   respondedBy: 1,
   respondedAt: "2026-10-24T10:00:00.000Z",
 };
@@ -78,6 +80,8 @@ describe("guestsCsv", () => {
         "Vegetarian",
         "",
         "Yes",
+        "Yes",
+        "No",
         '"https://www.google.com/maps/search/?api=1&query=-33.9,22.6"',
         "Group",
         "-33.9",
@@ -90,10 +94,10 @@ describe("guestsCsv", () => {
       ].join(","),
     );
     expect(lines[1]).toContain(
-      ',Other,"No ""fun"", please",Not sure,"https://www.google.com/maps/search/?api=1&query=-34,22.5",Somewhere else,-34,22.5,Alice Smith,',
+      ',Other,"No ""fun"", please",Not sure,Yes,No,"https://www.google.com/maps/search/?api=1&query=-34,22.5",Somewhere else,-34,22.5,Alice Smith,',
     );
-    // not coming: no dietary, shuttle or location
-    expect(lines[2]).toMatch(/^Carl Botha,Carl,Botha,Declined,,,,,,,,Carl Botha,/);
+    // not coming: no dietary, optional answers or location
+    expect(lines[2]).toMatch(/^Carl Botha,Carl,Botha,Declined,,,,,,,,,,Carl Botha,/);
   });
 
   it("keeps a guest's text from running as a formula", () => {

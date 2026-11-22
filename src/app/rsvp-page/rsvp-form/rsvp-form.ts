@@ -23,7 +23,7 @@ import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
 import { DIETARY_OPTIONS, GroupGuest, RsvpInput } from "../../models/api";
-import { DIETARY_LABELS, PrefilledField, RsvpDraft, toRsvpInput } from "../../models/rsvp";
+import { DIETARY_LABELS, OptionalAnswer, RsvpDraft, toRsvpInput } from "../../models/rsvp";
 
 export const MAX_DETAILS_LENGTH = 500;
 
@@ -46,7 +46,7 @@ export const MAX_DETAILS_LENGTH = 500;
 export class RsvpForm {
   guest = input.required<GroupGuest>();
   draft = input.required<RsvpDraft>();
-  prefilled = input<PrefilledField[]>([]);
+  prefilled = input<OptionalAnswer[]>([]);
   isSelf = input(false);
   closed = input(false);
   saving = input(false);
@@ -82,6 +82,27 @@ export class RsvpForm {
 
   protected id = computed(() => `rsvp-${this.guest().guestId}`);
   protected attending = computed(() => this.model().attending === "yes");
+  protected optionalQuestions = computed(() => {
+    const who = this.isSelf() ? "you" : this.guest().name;
+    const questions: { field: OptionalAnswer; title: string; hint: string }[] = [
+      {
+        field: "shuttle",
+        title: `Would ${who} be interested in a shuttle?`,
+        hint: "We're hoping to arrange one and will let you know closer to the day.",
+      },
+      {
+        field: "braai",
+        title: `Will ${who} join us on Friday evening?`,
+        hint: "A relaxed get-together at the venue from 16:00 on Friday 12 March. There might be a braai, there might not.",
+      },
+      {
+        field: "brunch",
+        title: `Will ${who} join us for brunch on Sunday?`,
+        hint: "An incredibly casual brunch from around 09:00 on Sunday 14 March, the morning after. Details to be confirmed.",
+      },
+    ];
+    return questions;
+  });
 
   protected errorOf<T>(field: FieldTree<T>): string | undefined {
     const state = field();

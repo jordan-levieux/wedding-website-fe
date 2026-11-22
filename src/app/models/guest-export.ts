@@ -3,11 +3,12 @@ import {
   AdminGuest,
   adminStatus,
   groupLabel,
+  maybeText,
   ROLE_LABELS,
   stayingAt,
 } from "./admin";
 import { mapsLink } from "./coordinates";
-import { DIETARY_LABELS } from "./rsvp";
+import { DIETARY_LABELS, OPTIONAL_ANSWERS } from "./rsvp";
 
 const COLUMNS = [
   "Group",
@@ -17,6 +18,8 @@ const COLUMNS = [
   "Dietary",
   "Dietary details",
   "Shuttle",
+  "Friday braai",
+  "Sunday brunch",
   "Staying",
   "Staying with",
   "Latitude",
@@ -66,7 +69,7 @@ export const guestsCsv = (guests: AdminGuest[], all: AdminGuest[]) => {
       ADMIN_STATUS_DISPLAY[adminStatus(guest)].label,
       coming ? DIETARY_LABELS[coming.dietary!] : null,
       coming?.dietaryOtherDetails ?? null,
-      coming ? (coming.shuttle === null ? "Not sure" : coming.shuttle ? "Yes" : "No") : null,
+      ...OPTIONAL_ANSWERS.map((field) => (coming ? maybeText(coming[field]) : null)),
       location && mapsLink(location),
       location && (guest.ownAccommodation ? "Somewhere else" : "Group"),
       location?.lat ?? null,

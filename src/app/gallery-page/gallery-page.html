@@ -1,0 +1,126 @@
+<div class="backdrop" aria-hidden="true">
+  <img ngSrc="back-grounds/info-page.jpg" fill priority alt="" />
+</div>
+
+<main class="page">
+  <header class="intro">
+    <a class="back" routerLink="/info" fragment="theme">
+      <mat-icon>arrow_back</mat-icon>
+      The details
+    </a>
+    <h1>Gallery</h1>
+  </header>
+
+  <section class="panel" aria-labelledby="album-title">
+    <div class="albums" role="group" aria-label="Albums">
+      @for (album of albums; track album.id) {
+        <button
+          type="button"
+          class="album"
+          [class.selected]="album === selected()"
+          [attr.aria-pressed]="album === selected()"
+          (click)="select(album)"
+        >
+          <span class="cover">
+            @if (photosOf(album)[0]; as cover) {
+              <img [src]="cover.thumb" alt="" loading="lazy" decoding="async" />
+            } @else {
+              <mat-icon>{{ albumIcons[album.id] ?? "photo_library" }}</mat-icon>
+            }
+          </span>
+          <span class="album-title">{{ album.title }}</span>
+          <span class="album-count">{{ photoCount(album) }}</span>
+        </button>
+      }
+    </div>
+
+    <div class="album-body">
+      <h2 id="album-title">{{ selected().title }}</h2>
+      <p>{{ selected().intro }}</p>
+      @if (loading()) {
+        <p class="empty" role="status">Loading photos…</p>
+      } @else if (failed()) {
+        <div class="failed" role="alert">
+          <p>We couldn't load the photos.</p>
+          <button mat-stroked-button type="button" (click)="retry()">
+            <mat-icon>refresh</mat-icon> Try again
+          </button>
+        </div>
+      } @else if (selectedPhotos().length) {
+        <ul class="grid">
+          @for (photo of selectedPhotos(); track photo.src; let index = $index) {
+            <li>
+              <button
+                type="button"
+                class="tile"
+                [attr.aria-label]="'View larger: ' + photo.alt"
+                (click)="open(index)"
+              >
+                <img [src]="photo.thumb" [alt]="photo.alt" loading="lazy" decoding="async" />
+              </button>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="empty">Photos coming soon.</p>
+      }
+    </div>
+  </section>
+</main>
+
+<dialog
+  #viewer
+  class="viewer"
+  aria-label="Photo viewer"
+  (close)="onClosed()"
+  (click)="onClick($event)"
+  (keydown)="onKeydown($event)"
+  (pointerdown)="onPointerDown($event)"
+  (pointerup)="onPointerUp($event)"
+>
+  @if (shown(); as shown) {
+    <button
+      mat-icon-button
+      class="close"
+      type="button"
+      aria-label="Close"
+      title="Close"
+      (click)="close()"
+    >
+      <mat-icon>close</mat-icon>
+    </button>
+    @if (shown.count > 1) {
+      <button
+        mat-icon-button
+        class="previous"
+        type="button"
+        aria-label="Previous photo"
+        title="Previous photo"
+        (click)="step(-1)"
+      >
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        class="next"
+        type="button"
+        aria-label="Next photo"
+        title="Next photo"
+        (click)="step(1)"
+      >
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    }
+    <figure class="figure">
+      <img [src]="shown.photo.src" [alt]="shown.photo.alt" />
+      <figcaption>
+        @if (shown.photo.caption) {
+          <span>{{ shown.photo.caption }}</span>
+        }
+        @if (shown.count > 1) {
+          <span class="count">{{ shown.position }} of {{ shown.count }}</span>
+        }
+      </figcaption>
+    </figure>
+  }
+</dialog>

@@ -29,6 +29,8 @@ const group = (answered: boolean, roles: Role[] = []): Group => ({
             dietary: null,
             dietaryOtherDetails: null,
             shuttle: null,
+            braai: null,
+            brunch: null,
             respondedBy: 1,
             respondedAt: "2026-10-24T10:00:00.000Z",
           }

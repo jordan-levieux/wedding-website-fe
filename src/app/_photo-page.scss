@@ -34,6 +34,12 @@
   color: #fff;
 }
 
+// the big page title that sits straight on the photo
+@mixin hero-title {
+  font-size: clamp(2.5rem, 8vw, 3.75rem);
+  line-height: 1.05;
+}
+
 // The photo with the title over it, and the content on soft panels that scroll over the top
 @mixin photo-page {
   @include backdrop;
@@ -57,9 +63,7 @@
     text-shadow: 0 1px 12px rgb(0 0 0 / 0.45);
 
     h1 {
-      font: var(--mat-sys-display-medium);
-      font-size: clamp(2.5rem, 8vw, 3.75rem);
-      line-height: 1.05;
+      @include hero-title;
     }
   }
 

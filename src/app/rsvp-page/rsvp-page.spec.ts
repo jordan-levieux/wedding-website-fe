@@ -20,6 +20,8 @@ const aliceAnswer: Rsvp = {
   dietary: "none",
   dietaryOtherDetails: null,
   shuttle: true,
+  braai: true,
+  brunch: false,
   respondedBy: 1,
   respondedAt: "2026-10-24T10:00:00.000Z",
 };
@@ -89,7 +91,7 @@ describe("RsvpPage", () => {
     expect(await Promise.all(panels.map((panel) => panel.isExpanded()))).toEqual([true, false]);
   });
 
-  it("saves someone else's RSVP with the copied shuttle answer", async () => {
+  it("saves someone else's RSVP with the copied optional answers", async () => {
     await setup(makeGroup());
     const bobPanel = (await loader.getAllHarnesses(MatExpansionPanelHarness))[0]!;
     const [accept] = await (
@@ -113,6 +115,8 @@ describe("RsvpPage", () => {
           dietary: "vegetarian",
           dietaryOtherDetails: null,
           shuttle: true,
+          braai: true,
+          brunch: false,
         },
       ],
     });

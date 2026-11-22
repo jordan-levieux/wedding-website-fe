@@ -1,6 +1,6 @@
 // Mirrors the backend's admin responses (wedding-website-be/src/admin-store.ts).
 import { Coordinates, DIETARY_OPTIONS, DietaryOption, Role, Rsvp } from "./api";
-import { DIETARY_LABELS } from "./rsvp";
+import { DIETARY_LABELS, hasOpenAnswers, OPTIONAL_ANSWERS, OptionalAnswer } from "./rsvp";
 
 export type AdminGuest = {
   guestId: number;
@@ -33,9 +33,15 @@ export const ADMIN_STATUS_DISPLAY: Record<AdminStatus, { label: string; icon: st
   awaiting: { label: "Awaiting", icon: "schedule" },
 };
 
-// coming, but we'd still like to know about the shuttle or where they're staying
+export const OPTIONAL_ANSWER_LABELS: Record<OptionalAnswer, string> = {
+  shuttle: "Shuttle",
+  braai: "Friday braai",
+  brunch: "Sunday brunch",
+};
+
+// coming, but we'd still like an optional answer or to know where they're staying
 export const missingDetails = (guest: AdminGuest) =>
-  !!guest.rsvp?.attending && (guest.rsvp.shuttle === null || !stayingAt(guest));
+  !!guest.rsvp?.attending && (hasOpenAnswers(guest.rsvp) || !stayingAt(guest));
 
 export const GUEST_FILTERS = [
   "all",
@@ -133,7 +139,7 @@ export type AdminSummary = {
   missingDetails: number;
   // the rest are counted over the guests who are coming
   dietary: Record<DietaryOption, number>;
-  shuttle: { yes: number; no: number; unanswered: number };
+  answers: Record<OptionalAnswer, { yes: number; no: number; unanswered: number }>;
   staying: { pinned: number; unanswered: number };
 };
 
@@ -154,11 +160,16 @@ export const adminSummary = (guests: AdminGuest[]): AdminSummary => {
         attending.filter((rsvp) => rsvp.dietary === option).length,
       ]),
     ) as Record<DietaryOption, number>,
-    shuttle: {
-      yes: attending.filter((rsvp) => rsvp.shuttle === true).length,
-      no: attending.filter((rsvp) => rsvp.shuttle === false).length,
-      unanswered: attending.filter((rsvp) => rsvp.shuttle === null).length,
-    },
+    answers: Object.fromEntries(
+      OPTIONAL_ANSWERS.map((field) => [
+        field,
+        {
+          yes: attending.filter((rsvp) => rsvp[field] === true).length,
+          no: attending.filter((rsvp) => rsvp[field] === false).length,
+          unanswered: attending.filter((rsvp) => rsvp[field] === null).length,
+        },
+      ]),
+    ) as AdminSummary["answers"],
     staying: {
       pinned: count((guest) => !!guest.rsvp?.attending && !!stayingAt(guest)),
       unanswered: count((guest) => !!guest.rsvp?.attending && !stayingAt(guest)),
@@ -265,7 +276,7 @@ const FIELD_LABELS: Record<string, string> = {
   attending: "Attendance",
   dietary: "Dietary",
   dietary_other_details: "Dietary",
-  shuttle: "Shuttle",
+  ...OPTIONAL_ANSWER_LABELS,
 };
 
 export const changedFieldLabels = (change: RsvpChange) => [
@@ -275,12 +286,17 @@ export const changedFieldLabels = (change: RsvpChange) => [
 const dietaryText = (rsvp: Rsvp) =>
   rsvp.dietary === "other" ? `Other: ${rsvp.dietaryOtherDetails}` : DIETARY_LABELS[rsvp.dietary!];
 
-const shuttleText = (shuttle: boolean | null) =>
-  shuttle === null ? "not sure" : shuttle ? "yes" : "no";
+export const maybeText = (answer: boolean | null) =>
+  answer === null ? "Not sure" : answer ? "Yes" : "No";
 
 export const answerSummary = (rsvp: Rsvp) =>
   rsvp.attending
-    ? [dietaryText(rsvp), `Shuttle: ${shuttleText(rsvp.shuttle)}`].join(" · ")
+    ? [
+        dietaryText(rsvp),
+        ...OPTIONAL_ANSWERS.map(
+          (field) => `${OPTIONAL_ANSWER_LABELS[field]}: ${maybeText(rsvp[field]).toLowerCase()}`,
+        ),
+      ].join(" · ")
     : "Not coming";
 
 export type TimelineEntry = {
@@ -314,8 +330,11 @@ const rsvpChanges = (before: Rsvp, after: Rsvp) => {
   return [
     dietaryText(before) !== dietaryText(after) &&
       `Dietary: ${before.attending ? dietaryText(before) : "—"} → ${dietaryText(after)}`,
-    before.shuttle !== after.shuttle &&
-      `Shuttle: ${shuttleText(before.shuttle)} → ${shuttleText(after.shuttle)}`,
+    ...OPTIONAL_ANSWERS.map(
+      (field) =>
+        before[field] !== after[field] &&
+        `${OPTIONAL_ANSWER_LABELS[field]}: ${maybeText(before[field]).toLowerCase()} → ${maybeText(after[field]).toLowerCase()}`,
+    ),
   ].filter((change) => change !== false);
 };
 

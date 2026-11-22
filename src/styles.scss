@@ -3,6 +3,8 @@
 @use "./theme-colors" as theme;
 
 $font: "'Cormorant Garamond', Georgia, serif";
+// a flowing script for page titles; falls back to the body serif while it loads
+$title-font: "'Lavishly Yours', #{$font}";
 
 // Cormorant's letters are small for their size, so the text-sized steps of the type scale are a
 // little larger than Material's defaults; display and headline sizes already suit it.
@@ -133,7 +135,9 @@ p {
 
 h1 {
   font: var(--mat-sys-display-small);
-  letter-spacing: -0.01em;
+  // the script comes in one weight, and its joined letters need their natural spacing
+  font-family: #{$title-font};
+  font-weight: 400;
 }
 
 h2 {

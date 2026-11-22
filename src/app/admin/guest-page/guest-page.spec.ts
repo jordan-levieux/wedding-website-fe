@@ -122,6 +122,8 @@ describe("GuestPage", () => {
           dietary: null,
           dietaryOtherDetails: null,
           shuttle: null,
+          braai: null,
+          brunch: null,
         },
       ],
     });

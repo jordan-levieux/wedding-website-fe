@@ -1,4 +1,5 @@
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
+import { ViewportScroller } from "@angular/common";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -69,10 +70,14 @@ export class App {
       title: "Info",
       route: "/info",
     },
+    {
+      title: "Gallery",
+      route: "/gallery",
+    },
     ...(this.groupService.canSeeAdmin() ? [{ title: "Admin", route: "/admin" }] : []),
   ]);
 
-  // red for people who haven't answered at all, a softer reminder for missing shuttle/accommodation answers
+  // red for people who haven't answered at all, a softer reminder for missing optional answers or places
   protected rsvpBadge = computed(() => {
     const { unanswered, incomplete } = this.groupService.attention();
     if (!this.groupService.rsvpOpen() || unanswered + incomplete === 0) {
@@ -82,7 +87,7 @@ export class App {
       unanswered &&
         `${unanswered} ${plural(unanswered, "person hasn't", "people haven't")} RSVPed yet`,
       incomplete &&
-        `${incomplete} ${plural(incomplete, "RSVP is", "RSVPs are")} missing shuttle or accommodation details`,
+        `${incomplete} ${plural(incomplete, "RSVP is", "RSVPs are")} missing a few details`,
     ].filter(Boolean);
     return {
       count: unanswered + incomplete,
@@ -108,6 +113,12 @@ export class App {
         }
         lastPath = path;
       });
+
+    // a link to a section (/info#dress-code) lands with its panel just clear of the top bar
+    inject(ViewportScroller).setOffset(() => [
+      0,
+      (this.topBar()?.nativeElement.offsetHeight ?? 0) + 48,
+    ]);
 
     // pages that fill the screen below the top bar size themselves with this
     effect((onCleanup) => {

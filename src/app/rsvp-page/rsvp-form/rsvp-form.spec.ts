@@ -5,7 +5,7 @@ import { MatButtonToggleGroupHarness } from "@angular/material/button-toggle/tes
 import { MatChipListboxHarness } from "@angular/material/chips/testing";
 import { MatInputHarness } from "@angular/material/input/testing";
 import { GroupGuest, RsvpInput } from "../../models/api";
-import { PrefilledField, RsvpDraft } from "../../models/rsvp";
+import { OptionalAnswer, RsvpDraft } from "../../models/rsvp";
 import { RsvpForm } from "./rsvp-form";
 
 const bob: GroupGuest = {
@@ -20,6 +20,8 @@ const blank: RsvpDraft = {
   dietary: null,
   dietaryOtherDetails: "",
   shuttle: "unsure",
+  braai: "unsure",
+  brunch: "unsure",
 };
 
 describe("RsvpForm", () => {
@@ -30,7 +32,7 @@ describe("RsvpForm", () => {
   const setup = async (
     options: {
       draft?: RsvpDraft;
-      prefilled?: PrefilledField[];
+      prefilled?: OptionalAnswer[];
       closed?: boolean;
       isSelf?: boolean;
     } = {},
@@ -90,6 +92,8 @@ describe("RsvpForm", () => {
         dietary: null,
         dietaryOtherDetails: null,
         shuttle: null,
+        braai: null,
+        brunch: null,
       },
     ]);
   });
@@ -116,6 +120,8 @@ describe("RsvpForm", () => {
         dietary: "other",
         dietaryOtherDetails: "no mushrooms",
         shuttle: null,
+        braai: null,
+        brunch: null,
       },
     ]);
   });

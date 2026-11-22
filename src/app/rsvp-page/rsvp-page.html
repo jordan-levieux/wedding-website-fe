@@ -13,7 +13,7 @@
             Replies closed
           }
         </p>
-        <h1>RSVP</h1>
+        <h1>Your response</h1>
         @if (progress().total > 1) {
           <div class="progress">
             <span class="muted"
@@ -58,10 +58,12 @@
                     }
                   </span>
                 </li>
-                <li>
-                  <mat-icon>directions_bus</mat-icon>
-                  <span>{{ shuttleText(self.rsvp) }}</span>
-                </li>
+                @for (field of optionalAnswers; track field) {
+                  <li>
+                    <mat-icon>{{ answerText[field].icon }}</mat-icon>
+                    <span>{{ answerSummary(self.rsvp, field) }}</span>
+                  </li>
+                }
               }
             </ul>
             @if (answeredBy(self); as name) {
@@ -101,8 +103,8 @@
           <div class="group-intro">
             <h2>Your group</h2>
             <p class="muted">
-              You can reply for everyone else too. We've copied your shuttle answer across, so just
-              change anything that's different.
+              You can reply for everyone else too. We've copied your shuttle, Friday and brunch
+              answers across, so just change anything that's different.
             </p>
           </div>
           <mat-accordion multi class="accordion">

@@ -1,4 +1,4 @@
-import { Coordinates, DietaryOption, Group, GroupGuest, RsvpInput } from "./api";
+import { Coordinates, DietaryOption, Group, GroupGuest, Rsvp, RsvpInput } from "./api";
 
 // a guest's own place wins over their group's
 export const stayingAt = (
@@ -8,53 +8,67 @@ export const stayingAt = (
 
 export type YesNo = "yes" | "no";
 
+export type MaybeAnswer = YesNo | "unsure";
+
+// the yes/no/not sure questions asked of guests who are coming, which they can leave for later
+export const OPTIONAL_ANSWERS = ["shuttle", "braai", "brunch"] as const;
+export type OptionalAnswer = (typeof OPTIONAL_ANSWERS)[number];
+
 // form-friendly version of an RSVP: the toggle groups bind to strings
 export type RsvpDraft = {
   attending: YesNo | null;
   dietary: DietaryOption | null;
   dietaryOtherDetails: string;
-  shuttle: YesNo | "unsure";
-};
-
-export type PrefilledField = "shuttle";
+} & Record<OptionalAnswer, MaybeAnswer>;
 
 const toYesNo = (value: boolean): YesNo => (value ? "yes" : "no");
 
+const toMaybeAnswer = (value: boolean | null | undefined): MaybeAnswer =>
+  value == null ? "unsure" : toYesNo(value);
+
 /**
- * The draft to show for a guest. The shuttle answer of anyone else in the group is filled in from the
- * caller's own RSVP when they haven't given one, so families only change what differs.
+ * The draft to show for a guest. The optional answers of anyone else in the group are filled in from
+ * the caller's own RSVP when they haven't given them, so families only change what differs.
  */
 export const draftFor = (
   guest: GroupGuest,
   self: GroupGuest | undefined,
-): { draft: RsvpDraft; prefilled: PrefilledField[] } => {
+): { draft: RsvpDraft; prefilled: OptionalAnswer[] } => {
   const rsvp = guest.rsvp;
   const draft: RsvpDraft = {
     attending: rsvp ? toYesNo(rsvp.attending) : null,
     dietary: rsvp?.dietary ?? null,
     dietaryOtherDetails: rsvp?.dietaryOtherDetails ?? "",
-    shuttle: rsvp?.shuttle == null ? "unsure" : toYesNo(rsvp.shuttle),
+    shuttle: toMaybeAnswer(rsvp?.shuttle),
+    braai: toMaybeAnswer(rsvp?.braai),
+    brunch: toMaybeAnswer(rsvp?.brunch),
   };
-  const prefilled: PrefilledField[] = [];
   const source = guest.guestId === self?.guestId ? undefined : self?.rsvp;
-  if (source?.attending && rsvp?.shuttle == null && source.shuttle != null) {
-    draft.shuttle = toYesNo(source.shuttle);
-    prefilled.push("shuttle");
-  }
+  const prefilled = OPTIONAL_ANSWERS.filter(
+    (field) => source?.attending && rsvp?.[field] == null && source[field] != null,
+  );
+  prefilled.forEach((field) => (draft[field] = toMaybeAnswer(source![field])));
   return { draft, prefilled };
 };
 
 export const toRsvpInput = (guestId: number, draft: RsvpDraft): RsvpInput => {
   const attending = draft.attending === "yes";
+  const answer = (field: OptionalAnswer) =>
+    !attending || draft[field] === "unsure" ? null : draft[field] === "yes";
   return {
     guestId,
     attending,
     dietary: attending ? draft.dietary : null,
     dietaryOtherDetails:
       attending && draft.dietary === "other" ? draft.dietaryOtherDetails.trim() : null,
-    shuttle: !attending || draft.shuttle === "unsure" ? null : draft.shuttle === "yes",
+    shuttle: answer("shuttle"),
+    braai: answer("braai"),
+    brunch: answer("brunch"),
   };
 };
+
+export const hasOpenAnswers = (rsvp: Rsvp) =>
+  OPTIONAL_ANSWERS.some((field) => rsvp[field] === null);
 
 export type GuestStatus = "unanswered" | "incomplete" | "complete";
 
@@ -66,7 +80,7 @@ export const guestStatus = (
   if (!guest.rsvp) {
     return "unanswered";
   }
-  if (guest.rsvp.attending && (guest.rsvp.shuttle === null || !stayingAt(guest, group))) {
+  if (guest.rsvp.attending && (hasOpenAnswers(guest.rsvp) || !stayingAt(guest, group))) {
     return "incomplete";
   }
   return "complete";

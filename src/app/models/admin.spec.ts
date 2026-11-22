@@ -24,6 +24,8 @@ const coming: Rsvp = {
   dietary: "vegetarian",
   dietaryOtherDetails: null,
   shuttle: true,
+  braai: true,
+  brunch: false,
   respondedBy: 1,
   respondedAt: "2026-10-24T10:00:00.000Z",
 };
@@ -107,7 +109,7 @@ describe("admin guest helpers", () => {
     ]);
   });
 
-  it("summarises answers, counting dietary, shuttle and staying over the guests who are coming", () => {
+  it("summarises answers, counting dietary, optional answers and staying over the guests who are coming", () => {
     const summary = adminSummary([alice, bob, zoë, carl]);
     expect(summary).toEqual(
       expect.objectContaining({
@@ -118,7 +120,11 @@ describe("admin guest helpers", () => {
         declined: 1,
         awaiting: 1,
         missingDetails: 1,
-        shuttle: { yes: 1, no: 0, unanswered: 1 },
+        answers: {
+          shuttle: { yes: 1, no: 0, unanswered: 1 },
+          braai: { yes: 2, no: 0, unanswered: 0 },
+          brunch: { yes: 0, no: 2, unanswered: 0 },
+        },
         staying: { pinned: 2, unanswered: 0 },
       }),
     );
@@ -137,21 +143,32 @@ describe("admin guest helpers", () => {
   });
 
   it("summarises an answer in a line", () => {
-    expect(answerSummary(coming)).toBe("Vegetarian · Shuttle: yes");
+    expect(answerSummary(coming)).toBe(
+      "Vegetarian · Shuttle: yes · Friday braai: yes · Sunday brunch: no",
+    );
     expect(
       answerSummary({
         ...coming,
         dietary: "other",
         dietaryOtherDetails: "No nuts",
         shuttle: null,
+        braai: null,
       }),
-    ).toBe("Other: No nuts · Shuttle: not sure");
+    ).toBe("Other: No nuts · Shuttle: not sure · Friday braai: not sure · Sunday brunch: no");
     expect(answerSummary(carl.rsvp!)).toBe("Not coming");
   });
 
   it("names the parts of an RSVP that changed", () => {
-    const change = { changedFields: "attending, dietary, dietary_other_details, shuttle" };
-    expect(changedFieldLabels(change as RsvpChange)).toEqual(["Attendance", "Dietary", "Shuttle"]);
+    const change = {
+      changedFields: "attending, dietary, dietary_other_details, shuttle, braai, brunch",
+    };
+    expect(changedFieldLabels(change as RsvpChange)).toEqual([
+      "Attendance",
+      "Dietary",
+      "Shuttle",
+      "Friday braai",
+      "Sunday brunch",
+    ]);
   });
 });
 
@@ -273,6 +290,7 @@ describe("guest timeline", () => {
             respondedAt: at(3),
             dietary: "none",
             shuttle: false,
+            brunch: null,
           },
           { ...carl.rsvp!, historyId: 4, respondedAt: at(4) },
         ],
@@ -282,10 +300,15 @@ describe("guest timeline", () => {
       [
         "10-03",
         "Updated RSVP",
-        "Dietary: Vegetarian → No dietary requirements · Shuttle: yes → no",
+        "Dietary: Vegetarian → No dietary requirements · Shuttle: yes → no · Sunday brunch: no → not sure",
         "Alice Smith",
       ],
-      ["10-01", "RSVPed: coming", "Vegetarian · Shuttle: yes", "Alice Smith"],
+      [
+        "10-01",
+        "RSVPed: coming",
+        "Vegetarian · Shuttle: yes · Friday braai: yes · Sunday brunch: no",
+        "Alice Smith",
+      ],
     ]);
   });
 

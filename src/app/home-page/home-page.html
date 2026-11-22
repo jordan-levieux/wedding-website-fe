@@ -14,6 +14,40 @@
 </section>
 
 <main #content class="page">
+  <section class="panel essentials" aria-label="The essentials">
+    <dl class="facts">
+      <div class="fact">
+        <dt><mat-icon aria-hidden="true">event</mat-icon>When</dt>
+        <dd>Saturday 13 March 2027</dd>
+      </div>
+      <div class="fact">
+        <dt><mat-icon aria-hidden="true">schedule</mat-icon>Time</dt>
+        <dd>Arrive at 15:30</dd>
+        <dd><a routerLink="/info" fragment="weekend">See the full itinerary</a></dd>
+      </div>
+      <div class="fact">
+        <dt><mat-icon aria-hidden="true">place</mat-icon>Where</dt>
+        <dd>
+          <a [href]="mapsLink" target="_blank" rel="noopener">Beyond the Moon, Hoekwil</a>
+        </dd>
+      </div>
+      <div class="fact">
+        <dt>
+          <!-- the icon font has no dress, so it's drawn here at the same size -->
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M9.25 2h1.5v3.1q1.25.9 2.5 0V2h1.5v3.7L13.9 10l5.6 10.1q-7.5 1.8-15 0L10.1 10 9.25 5.7Z"
+            />
+          </svg>
+          Dress code
+        </dt>
+        <dd>
+          <a routerLink="/info" fragment="dress-code">Semi-formal-extravagant</a>
+        </dd>
+      </div>
+    </dl>
+  </section>
+
   <section class="panel story" aria-labelledby="our-story">
     <h2 id="our-story">Our story</h2>
     <p>

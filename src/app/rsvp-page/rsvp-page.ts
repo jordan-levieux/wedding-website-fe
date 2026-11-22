@@ -7,11 +7,42 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { GroupGuest, Rsvp, RsvpInput } from "../models/api";
-import { DIETARY_LABELS, draftFor, GuestStatus, guestStatus } from "../models/rsvp";
+import {
+  DIETARY_LABELS,
+  draftFor,
+  GuestStatus,
+  guestStatus,
+  OPTIONAL_ANSWERS,
+  OptionalAnswer,
+} from "../models/rsvp";
 import { apiErrorMessage } from "../services/authService";
 import { GroupService } from "../services/groupService";
 import { RsvpForm } from "./rsvp-form/rsvp-form";
 import { StayingCard } from "./staying-card/staying-card";
+
+const ANSWER_TEXT: Record<
+  OptionalAnswer,
+  { icon: string; yes: string; no: string; unsure: string }
+> = {
+  shuttle: {
+    icon: "directions_bus",
+    yes: "Interested in a shuttle",
+    no: "No shuttle needed",
+    unsure: "Not sure about a shuttle yet",
+  },
+  braai: {
+    icon: "outdoor_grill",
+    yes: "Coming on Friday evening",
+    no: "Can't make Friday evening",
+    unsure: "Not sure about Friday evening yet",
+  },
+  brunch: {
+    icon: "brunch_dining",
+    yes: "Coming to brunch on Sunday",
+    no: "Can't make brunch on Sunday",
+    unsure: "Not sure about Sunday's brunch yet",
+  },
+};
 
 const STATUS_LABELS: Record<GuestStatus, { label: string; icon: string }> = {
   unanswered: { label: "Not replied", icon: "schedule" },
@@ -42,6 +73,8 @@ export class RsvpPage {
 
   protected readonly dietaryLabels = DIETARY_LABELS;
   protected readonly statusLabels = STATUS_LABELS;
+  protected readonly optionalAnswers = OPTIONAL_ANSWERS;
+  protected readonly answerText = ANSWER_TEXT;
   protected group = this.groupService.group;
   protected self = this.groupService.self;
   protected open = this.groupService.rsvpOpen;
@@ -78,11 +111,10 @@ export class RsvpPage {
   protected editingSelf = signal(false);
   protected savingGuestId = signal<number | null>(null);
 
-  protected shuttleText(rsvp: Rsvp): string {
-    if (rsvp.shuttle === null) {
-      return "Not sure about a shuttle yet";
-    }
-    return rsvp.shuttle ? "Interested in a shuttle" : "No shuttle needed";
+  protected answerSummary(rsvp: Rsvp, field: OptionalAnswer): string {
+    const answer = rsvp[field];
+    const text = ANSWER_TEXT[field];
+    return answer === null ? text.unsure : answer ? text.yes : text.no;
   }
 
   protected answeredBy(guest: GroupGuest): string | null {

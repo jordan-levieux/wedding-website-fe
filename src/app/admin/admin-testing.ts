@@ -15,6 +15,8 @@ export const COMING: Rsvp = {
   dietary: "vegetarian",
   dietaryOtherDetails: null,
   shuttle: true,
+  braai: true,
+  brunch: false,
   respondedBy: 1,
   respondedAt: "2026-10-24T10:00:00.000Z",
 };

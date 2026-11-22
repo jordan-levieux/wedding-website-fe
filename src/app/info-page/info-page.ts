@@ -5,6 +5,7 @@ import { MatButtonModule } from "@angular/material/button";
 import { MatExpansionModule } from "@angular/material/expansion";
 import { MatIconModule } from "@angular/material/icon";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { RouterLink } from "@angular/router";
 import { ScrollCue } from "../scroll-cue/scroll-cue";
 import { bankingDetails } from "../../environments/banking-details";
 
@@ -13,7 +14,14 @@ import { bankingDetails } from "../../environments/banking-details";
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: "./info-page.scss",
   templateUrl: "./info-page.html",
-  imports: [MatButtonModule, MatExpansionModule, MatIconModule, NgOptimizedImage, ScrollCue],
+  imports: [
+    MatButtonModule,
+    MatExpansionModule,
+    MatIconModule,
+    NgOptimizedImage,
+    RouterLink,
+    ScrollCue,
+  ],
 })
 export class InfoPage {
   private clipboard = inject(Clipboard);

@@ -61,12 +61,18 @@ describe("App tabs", () => {
   it("shows the admin tab only to admins and viewers", async () => {
     const tabs = (element: HTMLElement) =>
       [...element.querySelectorAll("[mat-tab-link]")].map((tab) => tab.textContent?.trim());
-    expect(tabs(await render({ unanswered: 0, incomplete: 0 }))).toEqual(["Home", "RSVP", "Info"]);
+    expect(tabs(await render({ unanswered: 0, incomplete: 0 }))).toEqual([
+      "Home",
+      "RSVP",
+      "Info",
+      "Gallery",
+    ]);
     TestBed.resetTestingModule();
     expect(tabs(await render({ unanswered: 0, incomplete: 0 }, true, true))).toEqual([
       "Home",
       "RSVP",
       "Info",
+      "Gallery",
       "Admin",
     ]);
   });

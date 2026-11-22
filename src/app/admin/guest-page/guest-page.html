@@ -62,10 +62,10 @@
                     <span class="muted">· {{ rsvp.dietaryOtherDetails }}</span>
                   }
                 </dd>
-                <dt>Shuttle</dt>
-                <dd [class.missing]="rsvp.shuttle === null">
-                  {{ rsvp.shuttle === null ? "Not sure" : rsvp.shuttle ? "Yes" : "No" }}
-                </dd>
+                @for (field of optionalAnswers; track field) {
+                  <dt>{{ optionalAnswerLabels[field] }}</dt>
+                  <dd [class.missing]="rsvp[field] === null">{{ maybeText(rsvp[field]) }}</dd>
+                }
               }
             </dl>
             <p class="meta muted">

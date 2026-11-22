@@ -17,6 +17,8 @@ const coming: Rsvp = {
   dietary: "other",
   dietaryOtherDetails: "No mushrooms",
   shuttle: null,
+  braai: null,
+  brunch: null,
   respondedBy: 1,
   respondedAt: "2026-10-24T10:00:00.000Z",
 };

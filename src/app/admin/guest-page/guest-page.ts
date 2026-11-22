@@ -24,12 +24,14 @@ import {
   groupLabel,
   guestTimeline,
   GuestUpdate,
+  maybeText,
   nextGroupId,
+  OPTIONAL_ANSWER_LABELS,
   ROLE_LABELS,
 } from "../../models/admin";
 import { Coordinates, GroupGuest, RsvpInput } from "../../models/api";
 import { mapsLink } from "../../models/coordinates";
-import { DIETARY_LABELS, draftFor } from "../../models/rsvp";
+import { DIETARY_LABELS, draftFor, OPTIONAL_ANSWERS } from "../../models/rsvp";
 import { AdminService } from "../../services/adminService";
 import { apiErrorMessage } from "../../services/authService";
 import { loader } from "../../services/loader";
@@ -74,6 +76,9 @@ export class GuestPage {
 
   protected readonly roleLabels = ROLE_LABELS;
   protected readonly dietaryLabels = DIETARY_LABELS;
+  protected readonly optionalAnswers = OPTIONAL_ANSWERS;
+  protected readonly optionalAnswerLabels = OPTIONAL_ANSWER_LABELS;
+  protected readonly maybeText = maybeText;
   protected readonly mapsLink = mapsLink;
   protected readonly adminStatus = adminStatus;
 

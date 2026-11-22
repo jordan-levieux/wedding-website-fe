@@ -30,6 +30,11 @@
 .intro {
   display: grid;
   gap: 0.5rem;
+
+  // the same size as the home page's title
+  h1 {
+    @include photo-page.hero-title;
+  }
 }
 
 .progress {

@@ -29,6 +29,10 @@ export const routes: Routes = [
         loadComponent: () => import("./info-page/info-page").then((m) => m.InfoPage),
       },
       {
+        path: "gallery",
+        loadComponent: () => import("./gallery-page/gallery-page").then((m) => m.GalleryPage),
+      },
+      {
         path: "admin",
         canActivate: [adminGuard],
         loadChildren: () => import("./admin/admin.routes").then((m) => m.adminRoutes),

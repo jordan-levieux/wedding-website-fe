@@ -48,27 +48,26 @@
       }
     </div>
 
-    <div
-      class="question"
-      role="group"
-      [attr.aria-labelledby]="id() + '-shuttle'"
-      [attr.aria-describedby]="id() + '-shuttle-hint'"
-    >
-      <h3 [id]="id() + '-shuttle'">
-        Would {{ isSelf() ? "you" : guest().name }} be interested in a shuttle?
-      </h3>
-      <p class="hint" [id]="id() + '-shuttle-hint'">
-        We're hoping to arrange one and will let you know closer to the day.
-      </p>
-      <mat-button-toggle-group [formField]="rsvpForm.shuttle" class="choice">
-        <mat-button-toggle value="yes">Yes please</mat-button-toggle>
-        <mat-button-toggle value="no">No thanks</mat-button-toggle>
-        <mat-button-toggle value="unsure">Not sure</mat-button-toggle>
-      </mat-button-toggle-group>
-      @if (prefilled().includes("shuttle")) {
-        <p class="copied"><mat-icon>content_copy</mat-icon> Copied from your RSVP</p>
-      }
-    </div>
+    @for (question of optionalQuestions(); track question.field) {
+      @let questionId = id() + "-" + question.field;
+      <div
+        class="question"
+        role="group"
+        [attr.aria-labelledby]="questionId"
+        [attr.aria-describedby]="questionId + '-hint'"
+      >
+        <h3 [id]="questionId">{{ question.title }}</h3>
+        <p class="hint" [id]="questionId + '-hint'">{{ question.hint }}</p>
+        <mat-button-toggle-group [formField]="rsvpForm[question.field]" class="choice">
+          <mat-button-toggle value="yes">Yes please</mat-button-toggle>
+          <mat-button-toggle value="no">No thanks</mat-button-toggle>
+          <mat-button-toggle value="unsure">Not sure</mat-button-toggle>
+        </mat-button-toggle-group>
+        @if (prefilled().includes(question.field)) {
+          <p class="copied"><mat-icon>content_copy</mat-icon> Copied from your RSVP</p>
+        }
+      </div>
+    }
   }
 
   @if (!closed()) {

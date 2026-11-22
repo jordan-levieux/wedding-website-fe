@@ -71,6 +71,13 @@
     grid-template-columns: 1fr auto;
     padding-top: calc(0.25rem + env(safe-area-inset-top));
   }
+
+  // admins get a fifth tab, which Material's 24px padding and 90px minimum would push past a small
+  // phone's width into scroll arrows; stretched tabs still share the full width
+  .tabs.compact a[mat-tab-link] {
+    min-width: 0;
+    padding-inline: 0.5rem;
+  }
 }
 
 .urgent {

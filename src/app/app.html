@@ -7,6 +7,7 @@
       <nav
         mat-tab-nav-bar
         class="tabs"
+        [class.compact]="tabs().length > 4"
         [tabPanel]="tabPanel"
         [mat-stretch-tabs]="isHandset()"
         mat-align-tabs="center"
