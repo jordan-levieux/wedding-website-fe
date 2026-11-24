@@ -10,7 +10,7 @@ export type YesNo = "yes" | "no";
 
 export type MaybeAnswer = YesNo | "unsure";
 
-// the yes/no/not sure questions asked of guests who are coming, which they can leave for later
+// the yes/no/Maybe questions asked of guests who are coming, which they can leave for later
 export const OPTIONAL_ANSWERS = ["shuttle", "braai", "brunch"] as const;
 export type OptionalAnswer = (typeof OPTIONAL_ANSWERS)[number];
 

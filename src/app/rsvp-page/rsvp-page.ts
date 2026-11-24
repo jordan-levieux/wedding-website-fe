@@ -28,7 +28,7 @@ const ANSWER_TEXT: Record<
     icon: "directions_bus",
     yes: "Interested in a shuttle",
     no: "No shuttle needed",
-    unsure: "Not sure about a shuttle yet",
+    unsure: "Maybe about a shuttle yet",
   },
   braai: {
     icon: "outdoor_grill",

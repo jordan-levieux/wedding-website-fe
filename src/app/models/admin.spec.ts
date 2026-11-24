@@ -154,7 +154,7 @@ describe("admin guest helpers", () => {
         shuttle: null,
         braai: null,
       }),
-    ).toBe("Other: No nuts · Shuttle: not sure · Friday braai: not sure · Sunday brunch: no");
+    ).toBe("Other: No nuts · Shuttle: maybe · Friday braai: maybe · Sunday brunch: no");
     expect(answerSummary(carl.rsvp!)).toBe("Not coming");
   });
 
@@ -300,7 +300,7 @@ describe("guest timeline", () => {
       [
         "10-03",
         "Updated RSVP",
-        "Dietary: Vegetarian → No dietary requirements · Shuttle: yes → no · Sunday brunch: no → not sure",
+        "Dietary: Vegetarian → No dietary requirements · Shuttle: yes → no · Sunday brunch: no → maybe",
         "Alice Smith",
       ],
       [

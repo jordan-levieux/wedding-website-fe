@@ -28,7 +28,7 @@ export const ALBUMS: Album[] = [
     id: "us",
     folder: "hyla_and_jordan",
     title: "Hyla and Jordan",
-    intro: "A few of us, from climbing walls to mountain paths.",
+    intro: "Some of our memories and the future home of some wedding pics",
   },
 ];
 

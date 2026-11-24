@@ -94,7 +94,7 @@ describe("guestsCsv", () => {
       ].join(","),
     );
     expect(lines[1]).toContain(
-      ',Other,"No ""fun"", please",Not sure,Yes,No,"https://www.google.com/maps/search/?api=1&query=-34,22.5",Somewhere else,-34,22.5,Alice Smith,',
+      ',Other,"No ""fun"", please",Maybe,Yes,No,"https://www.google.com/maps/search/?api=1&query=-34,22.5",Somewhere else,-34,22.5,Alice Smith,',
     );
     // not coming: no dietary, optional answers or location
     expect(lines[2]).toMatch(/^Carl Botha,Carl,Botha,Declined,,,,,,,,,,Carl Botha,/);

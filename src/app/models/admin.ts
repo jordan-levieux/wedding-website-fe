@@ -287,7 +287,7 @@ const dietaryText = (rsvp: Rsvp) =>
   rsvp.dietary === "other" ? `Other: ${rsvp.dietaryOtherDetails}` : DIETARY_LABELS[rsvp.dietary!];
 
 export const maybeText = (answer: boolean | null) =>
-  answer === null ? "Not sure" : answer ? "Yes" : "No";
+  answer === null ? "Maybe" : answer ? "Yes" : "No";
 
 export const answerSummary = (rsvp: Rsvp) =>
   rsvp.attending

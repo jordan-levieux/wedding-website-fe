@@ -59,9 +59,9 @@
         <h3 [id]="questionId">{{ question.title }}</h3>
         <p class="hint" [id]="questionId + '-hint'">{{ question.hint }}</p>
         <mat-button-toggle-group [formField]="rsvpForm[question.field]" class="choice">
-          <mat-button-toggle value="yes">Yes please</mat-button-toggle>
-          <mat-button-toggle value="no">No thanks</mat-button-toggle>
-          <mat-button-toggle value="unsure">Not sure</mat-button-toggle>
+          <mat-button-toggle value="yes">Yes</mat-button-toggle>
+          <mat-button-toggle value="no">No</mat-button-toggle>
+          <mat-button-toggle value="unsure">Maybe</mat-button-toggle>
         </mat-button-toggle-group>
         @if (prefilled().includes(question.field)) {
           <p class="copied"><mat-icon>content_copy</mat-icon> Copied from your RSVP</p>

@@ -135,7 +135,7 @@ describe("RsvpForm", () => {
       },
       prefilled: ["shuttle"],
     });
-    const [yes] = await (await choice(1)).getToggles({ text: "Yes please" });
+    const [yes] = await (await choice(1)).getToggles({ text: "Yes" });
     expect(await yes!.isChecked()).toBe(true);
     expect(text().match(/Copied from your RSVP/g)).toHaveLength(1);
   });

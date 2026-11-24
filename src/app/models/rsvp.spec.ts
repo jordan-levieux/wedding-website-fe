@@ -78,7 +78,7 @@ describe("toRsvpInput", () => {
     });
   });
 
-  it("turns 'not sure' into no answer and keeps details only for 'other'", () => {
+  it("turns 'maybe' into no answer and keeps details only for 'other'", () => {
     expect(
       toRsvpInput(2, {
         attending: "yes",
