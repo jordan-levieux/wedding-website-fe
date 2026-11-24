@@ -1,0 +1,49 @@
+@use "sass:meta";
+
+// PhotoSwipe adds its viewer to the end of the page, outside this component, so its styles are global
+::ng-deep {
+  @include meta.load-css("photoswipe/style.css");
+
+  .pswp {
+    --pswp-bg: rgb(10 12 8);
+  }
+
+  // the full photo waits, hidden over its thumbnail, until all of it has arrived, rather than
+  // drawing in from the top
+  .pswp__img:not(.pswp__img--placeholder) {
+    opacity: 0;
+    transition: opacity 200ms;
+  }
+
+  .pswp__img.pswp__img--loaded {
+    opacity: 1;
+  }
+
+  .pswp__caption {
+    background: linear-gradient(transparent, rgb(0 0 0 / 0.6));
+    bottom: 0;
+    color: #fff;
+    font: var(--mat-sys-body-medium);
+    left: 0;
+    padding: 2rem max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom))
+      max(1rem, env(safe-area-inset-left));
+    position: absolute;
+    right: 0;
+    text-align: center;
+    transition: opacity 200ms;
+
+    &:empty {
+      display: none;
+    }
+  }
+
+  .pswp:not(.pswp--ui-visible) .pswp__caption {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::ng-deep .pswp__img {
+    transition: none;
+  }
+}

@@ -21,10 +21,17 @@
           [attr.aria-pressed]="album === selected()"
           (click)="select(album)"
         >
-          <span class="cover">
+          <span class="cover" [class.shimmer]="coverLoading(album)">
             @if (photosOf(album)[0]; as cover) {
-              <img [src]="cover.thumb" alt="" loading="lazy" decoding="async" />
-            } @else {
+              <img
+                [src]="cover.thumb"
+                alt=""
+                loading="lazy"
+                decoding="async"
+                (load)="thumbSettled(cover.thumb)"
+                (error)="thumbSettled(cover.thumb)"
+              />
+            } @else if (!loading()) {
               <mat-icon>{{ albumIcons[album.id] ?? "photo_library" }}</mat-icon>
             }
           </span>
@@ -38,7 +45,12 @@
       <h2 id="album-title">{{ selected().title }}</h2>
       <p>{{ selected().intro }}</p>
       @if (loading()) {
-        <p class="empty" role="status">Loading photos…</p>
+        <p class="visually-hidden" role="status">Loading photos…</p>
+        <ul class="grid" aria-hidden="true">
+          @for (placeholder of placeholderTiles; track placeholder) {
+            <li class="placeholder shimmer"></li>
+          }
+        </ul>
       } @else if (failed()) {
         <div class="failed" role="alert">
           <p>We couldn't load the photos.</p>
@@ -53,10 +65,19 @@
               <button
                 type="button"
                 class="tile"
+                [class.shimmer]="!settledThumbs().has(photo.thumb)"
                 [attr.aria-label]="'View larger: ' + photo.alt"
                 (click)="open(index)"
               >
-                <img [src]="photo.thumb" [alt]="photo.alt" loading="lazy" decoding="async" />
+                <img
+                  #thumb
+                  [src]="photo.thumb"
+                  [alt]="photo.alt"
+                  loading="lazy"
+                  decoding="async"
+                  (load)="thumbSettled(photo.thumb)"
+                  (error)="thumbSettled(photo.thumb)"
+                />
               </button>
             </li>
           }
@@ -67,60 +88,3 @@
     </div>
   </section>
 </main>
-
-<dialog
-  #viewer
-  class="viewer"
-  aria-label="Photo viewer"
-  (close)="onClosed()"
-  (click)="onClick($event)"
-  (keydown)="onKeydown($event)"
-  (pointerdown)="onPointerDown($event)"
-  (pointerup)="onPointerUp($event)"
->
-  @if (shown(); as shown) {
-    <button
-      mat-icon-button
-      class="close"
-      type="button"
-      aria-label="Close"
-      title="Close"
-      (click)="close()"
-    >
-      <mat-icon>close</mat-icon>
-    </button>
-    @if (shown.count > 1) {
-      <button
-        mat-icon-button
-        class="previous"
-        type="button"
-        aria-label="Previous photo"
-        title="Previous photo"
-        (click)="step(-1)"
-      >
-        <mat-icon>chevron_left</mat-icon>
-      </button>
-      <button
-        mat-icon-button
-        class="next"
-        type="button"
-        aria-label="Next photo"
-        title="Next photo"
-        (click)="step(1)"
-      >
-        <mat-icon>chevron_right</mat-icon>
-      </button>
-    }
-    <figure class="figure">
-      <img [src]="shown.photo.src" [alt]="shown.photo.alt" />
-      <figcaption>
-        @if (shown.photo.caption) {
-          <span>{{ shown.photo.caption }}</span>
-        }
-        @if (shown.count > 1) {
-          <span class="count">{{ shown.position }} of {{ shown.count }}</span>
-        }
-      </figcaption>
-    </figure>
-  }
-</dialog>

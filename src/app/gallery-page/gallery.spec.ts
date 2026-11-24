@@ -1,10 +1,15 @@
 import { albumPhotos } from "./gallery";
 
-const photo = (name: string, extra: { alt?: string; caption?: string } = {}) => ({
+const photo = (
+  name: string,
+  extra: { alt?: string; caption?: string; width?: number; height?: number } = {},
+) => ({
   name,
   url: `https://signed/${name}`,
   alt: extra.alt ?? null,
   caption: extra.caption ?? null,
+  width: extra.width ?? null,
+  height: extra.height ?? null,
 });
 
 describe("albumPhotos", () => {
@@ -15,6 +20,8 @@ describe("albumPhotos", () => {
         photo("artistry_of_the_forest_floor/thumbs/10_ferns.webp"),
         photo("artistry_of_the_forest_floor/display/2-orange_fungus.jpg", {
           caption: "Knysna",
+          width: 1707,
+          height: 2560,
         }),
         photo("artistry_of_the_forest_floor/thumbs/2-orange_fungus.webp"),
         // a thumbnail on its own has nothing to open, so it's left out
@@ -27,12 +34,16 @@ describe("albumPhotos", () => {
         thumb: "https://signed/artistry_of_the_forest_floor/thumbs/2-orange_fungus.webp",
         alt: "Orange fungus",
         caption: "Knysna",
+        width: 1707,
+        height: 2560,
       },
       {
         src: "https://signed/artistry_of_the_forest_floor/display/10_ferns.jpg",
         thumb: "https://signed/artistry_of_the_forest_floor/thumbs/10_ferns.webp",
         alt: "Ferns",
         caption: null,
+        width: null,
+        height: null,
       },
     ]);
   });
@@ -50,6 +61,8 @@ describe("albumPhotos", () => {
         thumb: "https://signed/hyla_and_jordan/IMG 0042.jpg",
         alt: "Hyla and Jordan on a mountain",
         caption: null,
+        width: null,
+        height: null,
       },
     ]);
     expect(forest).toEqual([]);

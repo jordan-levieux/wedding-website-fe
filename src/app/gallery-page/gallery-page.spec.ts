@@ -6,6 +6,7 @@ import { RouterTestingHarness } from "@angular/router/testing";
 import { environment } from "../../environments/environment";
 import { GalleryResponse } from "./gallery";
 import { GalleryPage } from "./gallery-page";
+import { PhotoViewer } from "./photo-viewer";
 
 const galleryUrl = `${environment.apiUrl}/gallery`;
 const photo = (name: string, caption: string | null = null) => ({
@@ -13,6 +14,8 @@ const photo = (name: string, caption: string | null = null) => ({
   url: `https://storage.googleapis.com/signed/${name}`,
   alt: null,
   caption,
+  width: 2560,
+  height: 1707,
 });
 const listing: GalleryResponse = {
   photos: ["1_orange-fungus", "2_blue-lichen", "3_ferns"].flatMap((name, index) => [
@@ -24,7 +27,7 @@ const listing: GalleryResponse = {
 describe("GalleryPage", () => {
   let harness: RouterTestingHarness;
   let element: HTMLElement;
-  let dialog: HTMLDialogElement;
+  let open: ReturnType<typeof vi.fn>;
 
   const setup = async (url = "/gallery", respond: GalleryResponse | "fail" = listing) => {
     TestBed.configureTestingModule({
@@ -33,6 +36,10 @@ describe("GalleryPage", () => {
         provideHttpClient(),
         provideHttpClientTesting(),
       ],
+    });
+    open = vi.fn();
+    TestBed.overrideComponent(GalleryPage, {
+      set: { providers: [{ provide: PhotoViewer, useValue: { open } }] },
     });
     harness = await RouterTestingHarness.create(url);
     const request = TestBed.inject(HttpTestingController).expectOne(galleryUrl);
@@ -43,15 +50,6 @@ describe("GalleryPage", () => {
     }
     await settle();
     element = harness.routeNativeElement!;
-    dialog = element.querySelector("dialog")!;
-    // not every test DOM implements modal dialogs
-    dialog.showModal ??= function (this: HTMLDialogElement) {
-      this.setAttribute("open", "");
-    };
-    dialog.close = function (this: HTMLDialogElement) {
-      this.removeAttribute("open");
-      this.dispatchEvent(new Event("close"));
-    };
   };
 
   // the response reaches the page through a promise, a tick after it's flushed
@@ -61,8 +59,6 @@ describe("GalleryPage", () => {
   };
 
   const albumButtons = () => [...element.querySelectorAll<HTMLButtonElement>(".album")];
-  const caption = () =>
-    [...dialog.querySelectorAll("figcaption span")].map((span) => span.textContent!.trim());
 
   it("offers both albums and shows the first one's photos", async () => {
     await setup();
@@ -90,6 +86,36 @@ describe("GalleryPage", () => {
     expect(element.querySelector(".empty")!.textContent).toContain("Photos coming soon");
   });
 
+  it("shimmers placeholder tiles while the album loads, then each tile until its photo arrives", async () => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([{ path: "gallery", component: GalleryPage }], withComponentInputBinding()),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+      ],
+    });
+    TestBed.overrideComponent(GalleryPage, {
+      set: { providers: [{ provide: PhotoViewer, useValue: { open: vi.fn() } }] },
+    });
+    harness = await RouterTestingHarness.create("/gallery");
+    element = harness.routeNativeElement!;
+    expect(element.querySelector("[role=status]")!.textContent).toContain("Loading photos");
+    expect(element.querySelectorAll(".placeholder.shimmer")).toHaveLength(6);
+    expect(element.querySelector(".cover")!.classList).toContain("shimmer");
+
+    TestBed.inject(HttpTestingController).expectOne(galleryUrl).flush(listing);
+    await settle();
+    expect(element.querySelector(".placeholder")).toBeNull();
+    const tiles = [...element.querySelectorAll(".tile")];
+    expect(tiles.every((tile) => tile.classList.contains("shimmer"))).toBe(true);
+
+    tiles[0]!.querySelector("img")!.dispatchEvent(new Event("load"));
+    await harness.fixture.whenStable();
+    expect(tiles.map((tile) => tile.classList.contains("shimmer"))).toEqual([false, true, true]);
+    // the first photo is also the album's cover
+    expect(element.querySelector(".cover")!.classList).not.toContain("shimmer");
+  });
+
   it("offers to try again when the photos can't be loaded", async () => {
     await setup("/gallery", "fail");
     expect(element.textContent).toContain("We couldn't load the photos");
@@ -104,29 +130,16 @@ describe("GalleryPage", () => {
     expect(albumButtons()[1]!.getAttribute("aria-pressed")).toBe("true");
   });
 
-  it("opens a photo larger and steps through the album, wrapping around", async () => {
+  it("opens a photo in the viewer, with the rest of the album to step through", async () => {
     await setup();
-    element.querySelectorAll<HTMLButtonElement>(".tile")[0]!.click();
-    await harness.fixture.whenStable();
-    expect(dialog.hasAttribute("open")).toBe(true);
-    expect(dialog.querySelector<HTMLImageElement>(".figure img")!.alt).toBe("Orange fungus");
-    expect(dialog.querySelector<HTMLImageElement>(".figure img")!.src).toBe(
-      "https://storage.googleapis.com/signed/artistry_of_the_forest_floor/display/1_orange-fungus.jpg",
-    );
-    expect(caption()).toEqual(["Knysna forest", "1 of 3"]);
-
-    dialog.querySelector<HTMLButtonElement>(".previous")!.click();
-    await harness.fixture.whenStable();
-    expect(caption()).toEqual(["3 of 3"]);
-
-    dialog.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight" }));
-    await harness.fixture.whenStable();
-    expect(caption()).toEqual(["Knysna forest", "1 of 3"]);
-
-    dialog.querySelector<HTMLButtonElement>(".close")!.click();
-    await harness.fixture.whenStable();
-    expect(dialog.hasAttribute("open")).toBe(false);
-    expect(dialog.querySelector("figure")).toBeNull();
-    expect(document.documentElement.style.overflow).toBe("");
+    element.querySelectorAll<HTMLButtonElement>(".tile")[1]!.click();
+    const [photos, index, thumbs] = open.mock.calls[0]!;
+    expect(index).toBe(1);
+    expect(photos.map((photo: { alt: string }) => photo.alt)).toEqual([
+      "Orange fungus",
+      "Blue lichen",
+      "Ferns",
+    ]);
+    expect(thumbs).toEqual([...element.querySelectorAll(".tile img")]);
   });
 });

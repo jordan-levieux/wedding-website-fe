@@ -5,6 +5,9 @@ export type Photo = {
   // what's in the photo, for screen readers
   alt: string;
   caption: string | null;
+  // the full-screen version's size, if it was stored when the photo was uploaded
+  width: number | null;
+  height: number | null;
 };
 
 export type Album = {
@@ -34,7 +37,14 @@ export const ALBUMS: Album[] = [
 
 // GET /gallery: every image in the private gallery bucket, each with a signed link that expires
 export type GalleryResponse = {
-  photos: { name: string; url: string; alt: string | null; caption: string | null }[];
+  photos: {
+    name: string;
+    url: string;
+    alt: string | null;
+    caption: string | null;
+    width: number | null;
+    height: number | null;
+  }[];
 };
 
 // "03_orange-fungus.jpg" reads as "Orange fungus"; the leading number is only there to order the photos
@@ -84,6 +94,8 @@ export const albumPhotos = ({ photos }: GalleryResponse): Record<string, Photo[]
             thumb: thumbs.get(name) ?? display.url,
             alt: display.alt ?? nameToText(name),
             caption: display.caption,
+            width: display.width,
+            height: display.height,
           };
         }),
       ];
