@@ -117,5 +117,6 @@ export class PhotoViewer {
     });
     this.viewer = viewer;
     viewer.init();
+    viewer.element?.addEventListener("contextmenu", (event) => event.preventDefault());
   }
 }

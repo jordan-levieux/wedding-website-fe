@@ -125,6 +125,16 @@ describe("GalleryPage", () => {
     expect(element.querySelectorAll(".tile")).toHaveLength(3);
   });
 
+  it("keeps the right-click and long-press menu off the photos", async () => {
+    await setup();
+    for (const image of element.querySelectorAll(".tile img, .cover img")) {
+      const menu = new MouseEvent("contextmenu", { bubbles: true, cancelable: true });
+      image.dispatchEvent(menu);
+      expect(menu.defaultPrevented).toBe(true);
+      expect(image.getAttribute("draggable")).toBe("false");
+    }
+  });
+
   it("opens straight to the album in the address", async () => {
     await setup("/gallery?album=us");
     expect(albumButtons()[1]!.getAttribute("aria-pressed")).toBe("true");

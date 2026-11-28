@@ -25,7 +25,7 @@ export const ALBUMS: Album[] = [
     folder: "artistry_of_the_forest_floor",
     title: "The Artistry of the Forest Floor",
     intro:
-      "The moss, mushrooms, lichen and light we keep stopping to look at, and the photographs that inspired our theme.",
+      "The moss, mushrooms, lichen and light we keep stopping to look at, and the photographs that inspired our theme. (Photos taken by my dear Hyla)",
   },
   {
     id: "us",

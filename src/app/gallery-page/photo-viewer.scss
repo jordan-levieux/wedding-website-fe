@@ -19,6 +19,10 @@
     opacity: 1;
   }
 
+  .pswp__img {
+    -webkit-touch-callout: none;
+  }
+
   .pswp__caption {
     background: linear-gradient(transparent, rgb(0 0 0 / 0.6));
     bottom: 0;

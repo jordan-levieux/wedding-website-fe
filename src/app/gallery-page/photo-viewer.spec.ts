@@ -60,6 +60,9 @@ describe("PhotoViewer", () => {
     expect(viewer.querySelector(".pswp__caption")!.textContent).toBe("Knysna forest");
     // PhotoSwipe sets innerText, which the test DOM keeps apart from textContent
     expect(viewer.querySelector<HTMLElement>(".pswp__counter")!.innerText).toBe("1 of 2");
+    const menu = new MouseEvent("contextmenu", { bubbles: true, cancelable: true });
+    viewer.querySelector(".pswp__img")!.dispatchEvent(menu);
+    expect(menu.defaultPrevented).toBe(true);
 
     TestBed.resetTestingModule();
     await vi.waitFor(() => expect(document.querySelector(".pswp")).toBeNull());

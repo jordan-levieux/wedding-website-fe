@@ -26,6 +26,8 @@
               <img
                 [src]="cover.thumb"
                 alt=""
+                draggable="false"
+                (contextmenu)="$event.preventDefault()"
                 loading="lazy"
                 decoding="async"
                 (load)="thumbSettled(cover.thumb)"
@@ -73,6 +75,8 @@
                   #thumb
                   [src]="photo.thumb"
                   [alt]="photo.alt"
+                  draggable="false"
+                  (contextmenu)="$event.preventDefault()"
                   loading="lazy"
                   decoding="async"
                   (load)="thumbSettled(photo.thumb)"
