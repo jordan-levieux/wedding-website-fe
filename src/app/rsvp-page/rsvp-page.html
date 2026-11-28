@@ -112,7 +112,7 @@
               <mat-expansion-panel [expanded]="other.guest.guestId === nextUnansweredId()">
                 <mat-expansion-panel-header class="panel-header">
                   <mat-panel-title class="panel-title">
-                    <span class="name">{{ other.guest.name }} {{ other.guest.surname }}</span>
+                    <span class="name">{{ other.guest.name }}</span>
                     <span class="status" [class]="other.status">
                       <mat-icon>{{ statusLabels[other.status].icon }}</mat-icon>
                       @if (other.status === "complete") {

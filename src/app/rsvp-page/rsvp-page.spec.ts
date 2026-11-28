@@ -86,8 +86,8 @@ describe("RsvpPage", () => {
     expect(text()).toContain("1 of 3 in your group have replied");
     const panels = await loader.getAllHarnesses(MatExpansionPanelHarness);
     const titles = await Promise.all(panels.map((panel) => panel.getTitle()));
-    expect(titles[0]).toMatch(/^Bob Smith.*Not replied$/);
-    expect(titles[1]).toMatch(/^Cleo Smith.*Not replied$/);
+    expect(titles[0]).toMatch(/^Bob.*Not replied$/);
+    expect(titles[1]).toMatch(/^Cleo.*Not replied$/);
     expect(await Promise.all(panels.map((panel) => panel.isExpanded()))).toEqual([true, false]);
   });
 
@@ -126,7 +126,7 @@ describe("RsvpPage", () => {
     await fixture.whenStable();
 
     const panels = await loader.getAllHarnesses(MatExpansionPanelHarness);
-    expect(await panels[0]!.getTitle()).toMatch(/^Bob Smith.*Coming$/);
+    expect(await panels[0]!.getTitle()).toMatch(/^Bob.*Coming$/);
     expect(await panels[1]!.isExpanded()).toBe(true);
   });
 
@@ -162,7 +162,8 @@ describe("RsvpPage", () => {
     group.guests[1]!.ownAccommodation = { lat: -33.99, lng: 22.58 };
     await setup(group);
     const bob = [...(fixture.nativeElement as HTMLElement).querySelectorAll(".member")][1]!;
-    expect(bob.textContent).toContain("Bob Smith");
+    expect(bob.textContent).toContain("Bob");
+    expect(bob.textContent).not.toContain("Smith");
     expect(bob.textContent).toContain("Staying somewhere else");
 
     [...bob.querySelectorAll("button")]
